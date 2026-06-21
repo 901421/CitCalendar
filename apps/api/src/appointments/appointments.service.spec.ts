@@ -45,7 +45,7 @@ describe('AppointmentsService', () => {
   };
 
   const mockEmailService = {
-    sendConfirmationEmail: jest.fn(),
+    sendConfirmationEmail: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -360,7 +360,9 @@ describe('AppointmentsService', () => {
       expect(result.id).toEqual('appt-1');
       expect(mockPrismaService.appointment.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          professionalId: 'prof-1',
+          data: expect.objectContaining({
+            professionalId: 'prof-1',
+          }),
         })
       );
     });
@@ -442,6 +444,7 @@ describe('AppointmentsService', () => {
     });
 
     it('should throw NotFoundException if appointment is not found or belongs to another business', async () => {
+      mockPrismaService.appointment.findFirst.mockReset();
       mockPrismaService.appointment.findFirst.mockResolvedValue(null);
       await expect(service.reschedule('appt-1', 'business-1', '2026-06-21T10:00:00Z')).rejects.toThrow(NotFoundException);
     });
