@@ -223,4 +223,45 @@ class ApiClient {
       rethrow;
     }
   }
+
+  // ── WAITLIST ───────────────────────────────────────────────────────────────
+
+  Future<List<dynamic>> getWaitlist() async {
+    try {
+      final response = await _dio.get('/waitlist');
+      return response.data as List<dynamic>;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteWaitlistEntry(String id) async {
+    try {
+      await _dio.delete('/waitlist/$id');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ── COMMISSIONS ────────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> getProfessionalCommissions(
+    String professionalId, {
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {};
+      if (startDate != null) params['startDate'] = startDate;
+      if (endDate != null) params['endDate'] = endDate;
+
+      final response = await _dio.get(
+        '/professionals/$professionalId/commissions',
+        queryParameters: params,
+      );
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -38,7 +38,7 @@ interface TimeSlot {
   availableProfessionals: { id: string; name: string }[];
 }
 
-type BookingStep = "landing" | "services" | "schedule" | "details" | "success";
+type BookingStep = "landing" | "services" | "schedule" | "details" | "success" | "my-appointments" | "waitlist";
 
 interface BookingFlowClientProps {
   initialBusiness: Business;
@@ -68,6 +68,167 @@ export default function BookingFlowClient({ initialBusiness }: BookingFlowClient
 
   const [bookingResponse, setBookingResponse] = useState<any>(null);
   const [submittingBooking, setSubmittingBooking] = useState(false);
+
+  // Client portal lookup states
+  const [clientPortalPhone, setClientPortalPhone] = useState("");
+  const [clientAppointments, setClientAppointments] = useState<any[]>([]);
+  const [searchingPortal, setSearchingPortal] = useState(false);
+
+  // Client portal reschedule state
+  const [reschedulingAppointment, setReschedulingAppointment] = useState<any | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
+  const [rescheduleSlots, setRescheduleSlots] = useState<TimeSlot[]>([]);
+  const [loadingRescheduleSlots, setLoadingRescheduleSlots] = useState(false);
+  const [submittingReschedule, setSubmittingReschedule] = useState(false);
+
+  // Waitlist state
+  const [waitlistName, setWaitlistName] = useState("");
+  const [waitlistPhone, setWaitlistPhone] = useState("");
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistDate, setWaitlistDate] = useState("");
+  const [waitlistStart, setWaitlistStart] = useState("09:00");
+  const [waitlistEnd, setWaitlistEnd] = useState("20:00");
+  const [waitlistProfessional, setWaitlistProfessional] = useState("any");
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
+
+  // Initialize waitlistDate to today when entering waitlist step
+  useEffect(() => {
+    if (step === "waitlist" && !waitlistDate) {
+      setWaitlistDate(selectedDate || new Date().toISOString().split("T")[0]);
+    }
+  }, [step, waitlistDate, selectedDate]);
+
+  // Fetch client portal appointments
+  const fetchClientPortal = async () => {
+    if (!clientPortalPhone) return;
+    try {
+      setSearchingPortal(true);
+      const res = await fetch(`${API_URL}/appointments/client-portal?phone=${encodeURIComponent(clientPortalPhone)}&businessId=${business.id}`);
+      if (!res.ok) throw new Error("Error al obtener las citas");
+      const data = await res.json();
+      setClientAppointments(data);
+    } catch (err: any) {
+      alert(err.message || "Error al buscar las citas");
+    } finally {
+      setSearchingPortal(false);
+    }
+  };
+
+  // Cancel appointment from client portal
+  const handleClientCancel = async (appointmentId: string) => {
+    if (!confirm("¿Estás seguro de que quieres cancelar esta cita?")) return;
+    try {
+      const res = await fetch(`${API_URL}/appointments/client-portal/${appointmentId}/cancel`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessId: business.id }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "No se pudo cancelar la cita");
+      }
+      alert("Cita cancelada correctamente. Se ha liberado el hueco y notificado al barbero.");
+      fetchClientPortal(); // Refresh list
+    } catch (err: any) {
+      alert(err.message || "Error al cancelar la cita");
+    }
+  };
+
+  // Fetch slots for rescheduling
+  useEffect(() => {
+    if (!business || !reschedulingAppointment || !rescheduleDate) return;
+    const fetchRescheduleSlots = async () => {
+      try {
+        setLoadingRescheduleSlots(true);
+        const serviceIds = reschedulingAppointment.services.map((s: any) => s.serviceId || s.service?.id).join(",");
+        const profId = reschedulingAppointment.professionalId;
+        const url = `${API_URL}/appointments/availability?businessId=${business.id}&serviceIds=${serviceIds}&date=${rescheduleDate}&professionalId=${profId}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Error al obtener la disponibilidad");
+        const data = await res.json();
+        setRescheduleSlots(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingRescheduleSlots(false);
+      }
+    };
+    fetchRescheduleSlots();
+  }, [business, reschedulingAppointment, rescheduleDate, API_URL]);
+
+  // Confirm rescheduling
+  const handleClientConfirmReschedule = async () => {
+    if (!reschedulingAppointment || !rescheduleDate || !rescheduleTime) return;
+    try {
+      setSubmittingReschedule(true);
+      const [hours, minutes] = rescheduleTime.split(":");
+      const [year, month, day] = rescheduleDate.split("-").map(Number);
+      const bookingStart = new Date(Date.UTC(year, month - 1, day, Number(hours), Number(minutes), 0, 0));
+
+      const res = await fetch(`${API_URL}/appointments/client-portal/${reschedulingAppointment.id}/reschedule`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessId: business.id,
+          startTime: bookingStart.toISOString(),
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Error al reprogramar la cita");
+      }
+
+      alert("Cita reprogramada correctamente.");
+      setReschedulingAppointment(null);
+      fetchClientPortal(); // Refresh list
+    } catch (err: any) {
+      alert(err.message || "Error al reprogramar la cita");
+    } finally {
+      setSubmittingReschedule(false);
+    }
+  };
+
+  // Submit waitlist request
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!waitlistName || !waitlistPhone || !waitlistDate) {
+      alert("Por favor rellena los campos requeridos");
+      return;
+    }
+    try {
+      setWaitlistSubmitting(true);
+      const payload = {
+        businessId: business.id,
+        clientName: waitlistName,
+        clientPhone: waitlistPhone,
+        clientEmail: waitlistEmail || undefined,
+        requestedDate: waitlistDate,
+        preferredStart: waitlistStart,
+        preferredEnd: waitlistEnd,
+        professionalId: waitlistProfessional !== "any" ? waitlistProfessional : undefined,
+      };
+
+      const res = await fetch(`${API_URL}/waitlist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Error al registrarse en la lista de espera");
+      }
+
+      setWaitlistSuccess(true);
+    } catch (err: any) {
+      alert(err.message || "Error al registrarse en la lista de espera");
+    } finally {
+      setWaitlistSubmitting(false);
+    }
+  };
 
   // Set default date to today
   useEffect(() => {
@@ -200,6 +361,7 @@ export default function BookingFlowClient({ initialBusiness }: BookingFlowClient
             <a href="#services" onClick={() => setStep("landing")} className="text-zinc-400 hover:text-[#c8902a] transition-colors text-sm font-medium">Servicios</a>
             <a href="#barbers" onClick={() => setStep("landing")} className="text-zinc-400 hover:text-[#c8902a] transition-colors text-sm font-medium">Barberos</a>
             <a href="#about" onClick={() => setStep("landing")} className="text-zinc-400 hover:text-[#c8902a] transition-colors text-sm font-medium">Nosotros</a>
+            <button onClick={() => setStep("my-appointments")} className="text-zinc-400 hover:text-[#c8902a] transition-colors text-sm font-medium cursor-pointer bg-transparent border-none outline-none">Mis Reservas</button>
           </div>
           <button onClick={() => setStep("services")} className="bg-[#c8902a] text-black px-6 py-2.5 font-bold uppercase tracking-widest text-xs active:scale-95 transition-all">
             Reservar Ahora
@@ -452,9 +614,20 @@ export default function BookingFlowClient({ initialBusiness }: BookingFlowClient
                     <p className="text-zinc-500 text-xs mt-3">Calculando huecos libres en tiempo real...</p>
                   </div>
                 ) : availableSlots.length === 0 ? (
-                  <div className="text-center py-16 bg-[#11100e] rounded-lg border border-dashed border-zinc-800">
+                  <div className="text-center py-12 bg-[#11100e] rounded-lg border border-dashed border-zinc-800 px-6">
                     <p className="text-zinc-400 text-sm">No hay huecos disponibles para esta fecha.</p>
-                    <p className="text-zinc-600 text-xs mt-1">Prueba a seleccionar otro profesional o fecha.</p>
+                    <p className="text-zinc-600 text-xs mt-1 mb-4">Prueba a seleccionar otro profesional o fecha.</p>
+                    <div className="border-t border-zinc-800 pt-4 max-w-sm mx-auto">
+                      <p className="text-xs text-[#c8902a] font-bold uppercase mb-1">¿No encuentras hueco?</p>
+                      <p className="text-zinc-500 text-[11px] mb-4">Únete a nuestra lista de espera y te avisaremos por correo de inmediato si se libera una cita.</p>
+                      <button 
+                        type="button" 
+                        onClick={() => { setWaitlistDate(selectedDate); setStep("waitlist"); }} 
+                        className="bg-[#c8902a] hover:bg-[#c8902a]/80 text-black px-4 py-2 font-bold uppercase tracking-wider text-[10px] transition-all"
+                      >
+                        Unirse a Lista de Espera
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
@@ -646,6 +819,310 @@ export default function BookingFlowClient({ initialBusiness }: BookingFlowClient
               </button>
               <p className="text-[10px] text-zinc-600 mt-2">Puedes cancelar o reprogramar contactando directamente por teléfono al {business.phone}.</p>
             </div>
+          </section>
+        )}
+
+        {/* Step: My Appointments (Client Portal) */}
+        {step === "my-appointments" && (
+          <section className="py-12 max-w-4xl mx-auto px-4">
+            <button onClick={() => setStep("landing")} className="text-[#c8902a] flex items-center gap-1 text-xs mb-6 hover:underline">
+              ← Volver al inicio
+            </button>
+            <h1 className="text-3xl text-[#c8902a] mb-2 font-bold uppercase">Mis Reservas</h1>
+            <p className="text-zinc-400 text-sm mb-8">Introduce tu número de teléfono de contacto para consultar, reprogramar o cancelar tus citas.</p>
+
+            <div className="bg-[#1a1816] border border-zinc-800 p-6 rounded-xl max-w-md mb-8">
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Número de Teléfono</label>
+                <div className="flex gap-3">
+                  <input
+                    type="tel"
+                    value={clientPortalPhone}
+                    onChange={(e) => setClientPortalPhone(e.target.value)}
+                    placeholder="+34 612 345 678"
+                    className="flex-1 px-4 py-3 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                  />
+                  <button
+                    onClick={fetchClientPortal}
+                    disabled={searchingPortal || !clientPortalPhone}
+                    className="bg-[#c8902a] text-black px-6 rounded-lg font-bold text-xs uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {searchingPortal ? "Buscando..." : "Buscar"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {clientAppointments.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {clientAppointments.map((appt) => {
+                  const apptDate = new Date(appt.startTime);
+                  const isFuture = apptDate.getTime() > Date.now();
+                  const canModify = isFuture && (apptDate.getTime() - Date.now() > 24 * 60 * 60 * 1000);
+                  const isCancelled = appt.status === "CANCELLED";
+
+                  return (
+                    <div key={appt.id} className="bg-[#1a1816] border border-zinc-800 p-6 rounded-xl flex flex-col md:flex-row justify-between gap-6">
+                      <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex items-center gap-3">
+                          <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                            appt.status === "CONFIRMED" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                            appt.status === "COMPLETED" ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
+                            appt.status === "CANCELLED" ? "bg-rose-500/10 text-rose-400 border border-rose-500/20" :
+                            "bg-zinc-800 text-zinc-400 border border-zinc-700"
+                          }`}>
+                            {appt.status}
+                          </span>
+                          <span className="text-zinc-500 text-[10px] font-mono">{appt.id}</span>
+                        </div>
+                        <h3 className="text-white font-bold text-lg mt-1">
+                          {appt.services.map((s: any) => s.service?.name).join(" + ")}
+                        </h3>
+                        <p className="text-zinc-400 text-xs">
+                          Estilista: <strong className="text-white">{appt.professional?.name}</strong>
+                        </p>
+                        <p className="text-zinc-400 text-xs">
+                          Fecha y Hora: <strong className="text-white">{apptDate.toLocaleString("es-ES", { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' })}</strong>
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col justify-between items-end gap-4 min-w-[150px]">
+                        <span className="text-[#c8902a] font-bold text-xl">{appt.totalPrice}€</span>
+                        
+                        {!isCancelled && isFuture && (
+                          <div className="flex gap-2 w-full md:w-auto">
+                            {canModify ? (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setReschedulingAppointment(appt);
+                                    setRescheduleDate(apptDate.toISOString().split("T")[0]);
+                                    setRescheduleTime("");
+                                  }}
+                                  className="flex-1 md:flex-none border border-[#c8902a] hover:bg-[#c8902a] hover:text-black transition-colors text-[#c8902a] font-bold text-xs py-2 px-4 uppercase tracking-wider rounded"
+                                >
+                                  Reprogramar
+                                </button>
+                                <button
+                                  onClick={() => handleClientCancel(appt.id)}
+                                  className="flex-1 md:flex-none bg-rose-950/40 border border-rose-800 hover:bg-rose-900 transition-colors text-rose-200 font-bold text-xs py-2 px-4 uppercase tracking-wider rounded"
+                                >
+                                  Cancelar
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-zinc-600 text-[10px] italic">No modificable (política de 24h)</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : clientPortalPhone && !searchingPortal ? (
+              <div className="text-center py-12 bg-[#11100e] border border-dashed border-zinc-800 rounded-xl">
+                <p className="text-zinc-400 text-sm">No se encontraron citas activas para este número.</p>
+              </div>
+            ) : null}
+
+            {/* Rescheduling Overlay / Section in Client Portal */}
+            {reschedulingAppointment && (
+              <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+                <div className="bg-[#1a1816] border border-[#c8902a]/20 p-6 rounded-2xl w-full max-w-lg flex flex-col gap-5">
+                  <div>
+                    <h2 className="text-xl font-bold text-[#c8902a] uppercase">Reprogramar Cita</h2>
+                    <p className="text-zinc-400 text-xs mt-1">Elige una nueva fecha y hora para tu cita de {reschedulingAppointment.services.map((s: any) => s.service?.name).join(" + ")} con {reschedulingAppointment.professional?.name}.</p>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Nueva Fecha</label>
+                    <input
+                      type="date"
+                      value={rescheduleDate}
+                      min={new Date().toISOString().split("T")[0]}
+                      onChange={(e) => { setRescheduleDate(e.target.value); setRescheduleTime(""); }}
+                      className="w-full px-4 py-2.5 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Nueva Hora</label>
+                    {loadingRescheduleSlots ? (
+                      <div className="flex items-center gap-2 justify-center py-4">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#c8902a]"></div>
+                        <span className="text-zinc-500 text-xs">Buscando horas libres...</span>
+                      </div>
+                    ) : rescheduleSlots.length === 0 ? (
+                      <p className="text-rose-400 text-xs bg-rose-950/20 border border-rose-900/30 p-2.5 rounded text-center">No hay disponibilidad para esta fecha. Selecciona otro día.</p>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto pr-1">
+                        {rescheduleSlots.map((slot) => {
+                          const isSel = rescheduleTime === slot.time;
+                          return (
+                            <button
+                              key={slot.time}
+                              type="button"
+                              onClick={() => setRescheduleTime(slot.time)}
+                              className={`py-2 rounded font-bold text-xs border text-center transition-all ${
+                                isSel ? "bg-[#c8902a] text-black border-[#c8902a]" : "bg-[#0e0d0c] border-zinc-800 text-zinc-300 hover:border-[#c8902a]"
+                              }`}
+                            >
+                              {slot.time}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setReschedulingAppointment(null)}
+                      className="flex-1 py-3 border border-zinc-850 text-zinc-400 hover:bg-zinc-800/20 text-xs font-bold uppercase rounded-lg transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!rescheduleTime || submittingReschedule}
+                      onClick={handleClientConfirmReschedule}
+                      className="flex-1 py-3 bg-[#c8902a] text-black disabled:opacity-50 text-xs font-bold uppercase rounded-lg transition-all"
+                    >
+                      {submittingReschedule ? "Guardando..." : "Confirmar Cambio"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Step: Join Waitlist */}
+        {step === "waitlist" && (
+          <section className="py-12 max-w-lg mx-auto px-4">
+            <button onClick={() => setStep("schedule")} className="text-[#c8902a] flex items-center gap-1 text-xs mb-6 hover:underline">
+              ← Volver al calendario
+            </button>
+            <h1 className="text-3xl text-[#c8902a] mb-2 font-bold uppercase">Apuntarse a Lista de Espera</h1>
+            <p className="text-zinc-400 text-sm mb-8">Si no encuentras hueco libre, te avisaremos de inmediato si otro cliente reprograma o cancela su cita en esta fecha.</p>
+
+            {waitlistSuccess ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 rounded-full bg-[#c8902a]/10 border border-[#c8902a] flex items-center justify-center mx-auto mb-6">
+                  <span className="text-[#c8902a] text-2xl font-bold">✓</span>
+                </div>
+                <h2 className="text-2xl text-[#c8902a] font-bold mb-2">¡Añadido Correctamente!</h2>
+                <p className="text-zinc-400 text-xs mb-8 max-w-sm mx-auto">Te hemos apuntado en la lista de espera para el {waitlistDate}. Te llegará un correo instantáneo si se libera tu rango de horario preferido.</p>
+                
+                <button
+                  onClick={() => {
+                    setWaitlistSuccess(false);
+                    setStep("landing");
+                  }}
+                  className="bg-[#c8902a] text-black px-8 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all"
+                >
+                  Volver al Inicio
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleWaitlistSubmit} className="bg-[#1a1816] border border-zinc-800 p-6 rounded-xl flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Nombre Completo *</label>
+                  <input
+                    type="text"
+                    required
+                    value={waitlistName}
+                    onChange={(e) => setWaitlistName(e.target.value)}
+                    placeholder="Tu nombre"
+                    className="w-full px-4 py-2.5 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Teléfono de Contacto *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={waitlistPhone}
+                    onChange={(e) => setWaitlistPhone(e.target.value)}
+                    placeholder="+34 612 345 678"
+                    className="w-full px-4 py-2.5 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Email de Contacto *</label>
+                  <input
+                    type="email"
+                    required
+                    value={waitlistEmail}
+                    onChange={(e) => setWaitlistEmail(e.target.value)}
+                    placeholder="email@ejemplo.com"
+                    className="w-full px-4 py-2.5 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Fecha Solicitada</label>
+                  <input
+                    type="date"
+                    required
+                    value={waitlistDate}
+                    onChange={(e) => setWaitlistDate(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Hora Preferida (Desde)</label>
+                    <input
+                      type="text"
+                      required
+                      value={waitlistStart}
+                      onChange={(e) => setWaitlistStart(e.target.value)}
+                      placeholder="09:00"
+                      className="w-full px-4 py-2.5 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Hora Preferida (Hasta)</label>
+                    <input
+                      type="text"
+                      required
+                      value={waitlistEnd}
+                      onChange={(e) => setWaitlistEnd(e.target.value)}
+                      placeholder="20:00"
+                      className="w-full px-4 py-2.5 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Estilista Preferido</label>
+                  <select
+                    value={waitlistProfessional}
+                    onChange={(e) => setWaitlistProfessional(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#0e0d0c] border border-zinc-800 rounded-lg text-sm text-white outline-none focus:border-[#c8902a]"
+                  >
+                    <option value="any">Cualquiera disponible</option>
+                    {business.professionals.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={waitlistSubmitting}
+                  className="w-full bg-[#c8902a] text-black py-4 rounded-lg font-bold uppercase tracking-widest text-xs active:scale-95 transition-all mt-4"
+                >
+                  {waitlistSubmitting ? "Registrando..." : "Apuntarse a Lista de Espera"}
+                </button>
+              </form>
+            )}
           </section>
         )}
       </main>

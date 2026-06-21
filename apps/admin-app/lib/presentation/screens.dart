@@ -362,6 +362,31 @@ class _MainDashboardState extends State<MainDashboard> {
             Text('MÁS AJUSTES', style: AppTheme.titleStyle),
             const SizedBox(height: 24),
             ListTile(
+              leading: const Icon(Icons.list_alt, color: AppTheme.primary),
+              title: Text('Lista de espera', style: GoogleFonts.inter(color: Colors.white)),
+              trailing: const Icon(Icons.chevron_right, color: AppTheme.textMuted),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WaitlistScreen()),
+                );
+              },
+            ),
+            const Divider(color: Colors.white10, height: 1),
+            ListTile(
+              leading: const Icon(Icons.monetization_on_outlined, color: AppTheme.primary),
+              title: Text('Comisiones y liquidación', style: GoogleFonts.inter(color: Colors.white)),
+              trailing: const Icon(Icons.chevron_right, color: AppTheme.textMuted),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CommissionsScreen()),
+                );
+              },
+            ),
+            const Divider(color: Colors.white10, height: 1),
+            const SizedBox(height: 12),
+            ListTile(
               leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: Text('Cerrar sesión', style: GoogleFonts.inter(color: Colors.redAccent)),
               onTap: () {
@@ -2130,6 +2155,295 @@ class StatsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class WaitlistScreen extends StatefulWidget {
+  const WaitlistScreen({Key? key}) : super(key: key);
+
+  @override
+  State<WaitlistScreen> createState() => _WaitlistScreenState();
+}
+
+class _WaitlistScreenState extends State<WaitlistScreen> {
+  late final WaitlistCubit _waitlistCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _waitlistCubit = WaitlistCubit()..fetchWaitlist();
+  }
+
+  @override
+  void dispose() {
+    _waitlistCubit.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: _waitlistCubit,
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          backgroundColor: AppTheme.surfaceLowest,
+          title: Text('LISTA DE ESPERA', style: GoogleFonts.barlowCondensed(fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          centerTitle: true,
+        ),
+        body: BlocBuilder<WaitlistCubit, WaitlistState>(
+          builder: (context, state) {
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+            }
+
+            if (state.entries.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.hourglass_empty, size: 64, color: AppTheme.textMuted),
+                    const SizedBox(height: 16),
+                    Text('No hay clientes en espera', style: GoogleFonts.inter(color: AppTheme.textMuted)),
+                  ],
+                ),
+              );
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: state.entries.length,
+              itemBuilder: (context, index) {
+                final entry = state.entries[index];
+                final client = entry['client'] ?? {};
+                final prof = entry['professional'] ?? {};
+                final dateStr = DateTime.parse(entry['requestedDate']).toLocal().toString().split(' ')[0];
+
+                return Card(
+                  color: AppTheme.surface,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Colors.white10)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          justifyAxisAlignment: MainAxisAlignment.between,
+                          children: [
+                            Text(
+                              client['name'] ?? 'Cliente Anónimo',
+                              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                              onPressed: () {
+                                context.read<WaitlistCubit>().deleteEntry(entry['id']);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Teléfono: ${client['phone'] ?? ""}', style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 13)),
+                        Text('Email: ${client['email'] ?? "No especificado"}', style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 13)),
+                        const Divider(color: Colors.white10, height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.between,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('FECHA', style: GoogleFonts.barlowCondensed(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 11)),
+                                const SizedBox(height: 2),
+                                Text(dateStr, style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('HORARIO PREFERIDO', style: GoogleFonts.barlowCondensed(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 11)),
+                                const SizedBox(height: 2),
+                                Text('${entry['preferredStart']} - ${entry['preferredEnd']}', style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('ESTILISTA', style: GoogleFonts.barlowCondensed(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 11)),
+                                const SizedBox(height: 2),
+                                Text(prof['name'] ?? 'Cualquiera', style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class CommissionsScreen extends StatefulWidget {
+  const CommissionsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<CommissionsScreen> createState() => _CommissionsScreenState();
+}
+
+class _CommissionsScreenState extends State<CommissionsScreen> {
+  late final CommissionsCubit _commissionsCubit;
+  String _selectedProfessionalId = 'p1'; // Rafa
+
+  @override
+  void initState() {
+    super.initState();
+    _commissionsCubit = CommissionsCubit()..fetchCommissions(_selectedProfessionalId);
+  }
+
+  @override
+  void dispose() {
+    _commissionsCubit.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: _commissionsCubit,
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          backgroundColor: AppTheme.surfaceLowest,
+          title: Text('COMISIONES Y LIQUIDACIÓN', style: GoogleFonts.barlowCondensed(fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          centerTitle: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('SELECCIONAR PROFESIONAL', style: GoogleFonts.barlowCondensed(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedProfessionalId = 'p1');
+                        _commissionsCubit.fetchCommissions('p1');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedProfessionalId == 'p1' ? AppTheme.primary.withOpacity(0.1) : AppTheme.surface,
+                          border: Border.all(color: _selectedProfessionalId == 'p1' ? AppTheme.primary : Colors.white10),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text('Rafa', textAlign: TextAlign.center, style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: _selectedProfessionalId == 'p1' ? AppTheme.primary : Colors.white)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedProfessionalId = 'p2');
+                        _commissionsCubit.fetchCommissions('p2');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedProfessionalId == 'p2' ? AppTheme.primary.withOpacity(0.1) : AppTheme.surface,
+                          border: Border.all(color: _selectedProfessionalId == 'p2' ? AppTheme.primary : Colors.white10),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text('Luis', textAlign: TextAlign.center, style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: _selectedProfessionalId == 'p2' ? AppTheme.primary : Colors.white)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              BlocBuilder<CommissionsCubit, CommissionsState>(
+                builder: (context, state) {
+                  if (state.isLoading) {
+                    return const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 24), child: CircularProgressIndicator(color: AppTheme.primary)));
+                  }
+
+                  final data = state.data;
+                  final total = data['totalAmount'] ?? 0.0;
+                  final list = data['commissions'] as List<dynamic>? ?? [];
+
+                  return Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: Column(
+                            children: [
+                              Text('COMISIÓN ACUMULADA', style: GoogleFonts.barlowCondensed(color: AppTheme.textMuted, fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 8),
+                              Text('${total.toStringAsFixed(2)}€', style: GoogleFonts.barlowCondensed(color: AppTheme.primary, fontSize: 32, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text('Periodo: Mes actual', style: GoogleFonts.inter(color: Colors.white30, fontSize: 11)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text('DESGLOSE DE SERVICIOS', style: GoogleFonts.barlowCondensed(color: AppTheme.textMuted, fontWeight: FontWeight.bold, fontSize: 12)),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: list.isEmpty
+                              ? Center(child: Text('No hay comisiones registradas en el periodo', style: GoogleFonts.inter(color: AppTheme.textMuted)))
+                              : ListView.builder(
+                                  itemCount: list.length,
+                                  itemBuilder: (context, index) {
+                                    final comm = list[index];
+                                    final appt = comm['appointment'] ?? {};
+                                    final client = appt['client'] ?? {};
+
+                                    return Card(
+                                      color: AppTheme.surfaceLowest,
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      child: ListTile(
+                                        title: Text(client['name'] ?? 'Cliente', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14)),
+                                        subtitle: Text(
+                                          'Servicio: ${appt['totalPrice']}€ · Tasa: ${comm['rateValue']}%',
+                                          style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 12),
+                                        ),
+                                        trailing: Text(
+                                          '+${comm['amount']}€',
+                                          style: GoogleFonts.inter(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

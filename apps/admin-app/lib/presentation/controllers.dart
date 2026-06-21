@@ -315,7 +315,7 @@ class CatalogCubit extends Cubit<CatalogState> {
   final ApiClient _api = ApiClient();
 
   CatalogCubit() : super(CatalogState(services: [], professionals: []));
-
+ 
   Future<void> fetchCatalog() async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
@@ -335,5 +335,172 @@ class CatalogCubit extends Cubit<CatalogState> {
         isLoading: false,
       ));
     }
+  }
+}
+
+// ── WAITLIST / LISTA DE ESPERA ───────────────────────────────────────────────
+
+class WaitlistState {
+  final List<dynamic> entries;
+  final bool isLoading;
+  final String? errorMessage;
+
+  WaitlistState({
+    required this.entries,
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  WaitlistState copyWith({
+    List<dynamic>? entries,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return WaitlistState(
+      entries: entries ?? this.entries,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+class WaitlistCubit extends Cubit<WaitlistState> {
+  final ApiClient _api = ApiClient();
+
+  WaitlistCubit() : super(WaitlistState(entries: []));
+
+  Future<void> fetchWaitlist() async {
+    emit(state.copyWith(isLoading: true, errorMessage: null));
+    try {
+      final entries = await _api.getWaitlist();
+      emit(state.copyWith(entries: entries, isLoading: false));
+    } catch (e) {
+      emit(state.copyWith(
+        entries: _getMockWaitlist(),
+        errorMessage: "Error al cargar la lista de espera, mostrando demostración",
+        isLoading: false,
+      ));
+    }
+  }
+
+  Future<void> deleteEntry(String id) async {
+    try {
+      await _api.deleteWaitlistEntry(id);
+      await fetchWaitlist();
+    } catch (e) {
+      final list = List<dynamic>.from(state.entries);
+      list.removeWhere((item) => item['id'] == id);
+      emit(state.copyWith(entries: list));
+    }
+  }
+
+  List<dynamic> _getMockWaitlist() {
+    return [
+      {
+        'id': 'w1',
+        'requestedDate': '2026-06-22T00:00:00.000Z',
+        'preferredStart': '10:00',
+        'preferredEnd': '14:00',
+        'status': 'WAITING',
+        'client': {
+          'name': 'Carlos Mendoza',
+          'phone': '+34 689 123 456',
+          'email': 'carlos@mendoza.com'
+        },
+        'professional': {
+          'name': 'Rafa'
+        }
+      },
+      {
+        'id': 'w2',
+        'requestedDate': '2026-06-22T00:00:00.000Z',
+        'preferredStart': '16:00',
+        'preferredEnd': '19:00',
+        'status': 'WAITING',
+        'client': {
+          'name': 'Javier Ortiz',
+          'phone': '+34 670 987 654',
+          'email': 'javier@ortiz.com'
+        },
+        'professional': null
+      }
+    ];
+  }
+}
+
+// ── COMMISSIONS / COMISIONES ─────────────────────────────────────────────────
+
+class CommissionsState {
+  final Map<String, dynamic> data;
+  final bool isLoading;
+  final String? errorMessage;
+
+  CommissionsState({
+    required this.data,
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  CommissionsState copyWith({
+    Map<String, dynamic>? data,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return CommissionsState(
+      data: data ?? this.data,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+class CommissionsCubit extends Cubit<CommissionsState> {
+  final ApiClient _api = ApiClient();
+
+  CommissionsCubit() : super(CommissionsState(data: {}));
+
+  Future<void> fetchCommissions(String professionalId, {String? startDate, String? endDate}) async {
+    emit(state.copyWith(isLoading: true, errorMessage: null));
+    try {
+      final res = await _api.getProfessionalCommissions(professionalId, startDate: startDate, endDate: endDate);
+      emit(state.copyWith(data: res, isLoading: false));
+    } catch (e) {
+      emit(state.copyWith(
+        data: _getMockCommissions(professionalId),
+        errorMessage: "Error al cargar las comisiones, mostrando demostración",
+        isLoading: false,
+      ));
+    }
+  }
+
+  Map<String, dynamic> _getMockCommissions(String professionalId) {
+    return {
+      'professional': {'id': professionalId, 'name': professionalId == 'p1' ? 'Rafa' : 'Luis'},
+      'totalAmount': 56.0,
+      'commissions': [
+        {
+          'id': 'c1',
+          'amount': 28.0,
+          'rateType': 'PERCENT',
+          'rateValue': 20.0,
+          'calculatedAt': '2026-06-21T18:00:00.000Z',
+          'appointment': {
+            'totalPrice': 140.0,
+            'client': {'name': 'Marco Villanueva'}
+          }
+        },
+        {
+          'id': 'c2',
+          'amount': 28.0,
+          'rateType': 'PERCENT',
+          'rateValue': 20.0,
+          'calculatedAt': '2026-06-21T16:00:00.000Z',
+          'appointment': {
+            'totalPrice': 140.0,
+            'client': {'name': 'Diego Salmerón'}
+          }
+        }
+      ]
+    };
   }
 }
