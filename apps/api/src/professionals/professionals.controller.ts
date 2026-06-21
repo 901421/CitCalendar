@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Request, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ProfessionalsService } from './professionals.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateProfessionalDto } from './dto/create-professional.dto';
@@ -55,5 +55,16 @@ export class ProfessionalsController {
   async removeBlock(@Param('id') id: string, @Param('blockId') blockId: string, @Request() req: any) {
     const businessId = req.user.businessId;
     return this.professionalsService.removeBlock(blockId, id, businessId);
+  }
+
+  @Get(':id/commissions')
+  async getCommissions(
+    @Param('id') id: string,
+    @Request() req: any,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const businessId = req.user.businessId;
+    return this.professionalsService.getCommissions(id, businessId, startDate, endDate);
   }
 }

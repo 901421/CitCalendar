@@ -229,4 +229,53 @@ export class ProfessionalsService {
       where: { id: blockId },
     });
   }
+
+  async getCommissions(
+    professionalId: string,
+    businessId: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const prof = await this.prisma.professional.findFirst({
+      where: { id: professionalId, businessId },
+    });
+
+    if (!prof) {
+      throw new NotFoundException('Profesional no encontrado');
+    }
+
+    const whereClause: any = {
+      professionalId,
+    };
+
+    if (startDate || endDate) {
+      whereClause.calculatedAt = {};
+      if (startDate) {
+        whereClause.calculatedAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        whereClause.calculatedAt.lte = new Date(endDate);
+      }
+    }
+
+    const commissions = await this.prisma.commission.findMany({
+      where: whereClause,
+      include: {
+        appointment: {
+          include: {
+            client: true,
+          },
+        },
+      },
+      orderBy: { calculatedAt: 'desc' },
+    });
+
+    const totalAmount = commissions.reduce((sum, c) => sum + Number(c.amount), 0);
+
+    return {
+      professional: { id: prof.id, name: prof.name },
+      totalAmount,
+      commissions,
+    };
+  }
 }

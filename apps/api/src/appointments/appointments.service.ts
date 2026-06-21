@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { GetAvailabilityDto } from './dto/get-availability.dto';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { EmailService } from '../email/email.service';
+import { WaitlistService } from '../waitlist/waitlist.service';
 
 interface TimeRange {
   start: Date;
@@ -14,6 +15,7 @@ export class AppointmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    private readonly waitlistService: WaitlistService,
   ) {}
 
   /**
@@ -448,7 +450,54 @@ export class AppointmentsService {
       },
     });
 
-    // Simple cash close registration hook can go here in Phase 2
+    // Phase 2: Commission calculation hook
+    if (status === 'COMPLETED') {
+      const existingCommission = await this.prisma.commission.findFirst({
+        where: { appointmentId: id },
+      });
+
+      if (!existingCommission) {
+        const professional = await this.prisma.professional.findUnique({
+          where: { id: updatedAppt.professionalId },
+        });
+
+        if (professional && Number(professional.commissionRate) > 0) {
+          let commissionAmount = 0;
+          const rateValue = Number(professional.commissionRate);
+          const rateType = professional.commissionType; // PERCENT or FIXED
+          const totalPrice = Number(updatedAppt.totalPrice);
+
+          if (rateType === 'PERCENT') {
+            commissionAmount = totalPrice * (rateValue / 100);
+          } else {
+            commissionAmount = rateValue;
+          }
+
+          await this.prisma.commission.create({
+            data: {
+              professionalId: professional.id,
+              appointmentId: id,
+              amount: commissionAmount,
+              rateType,
+              rateValue,
+            },
+          });
+        }
+      }
+    } else {
+      // If the status is moved away from COMPLETED, remove the commission
+      await this.prisma.commission.deleteMany({
+        where: { appointmentId: id },
+      });
+    }
+
+    // Phase 2: Waitlist check hook
+    if (status === 'CANCELLED') {
+      await this.waitlistService.checkWaitlistAndNotify(id).catch((err) => {
+        console.error('Error triggering waitlist notification:', err);
+      });
+    }
+
     return updatedAppt;
   }
 
@@ -702,5 +751,143 @@ export class AppointmentsService {
     if (overlappingBlock) return false;
 
     return true;
+  }
+
+  /**
+   * Find all appointments for a client by phone number (public client portal)
+   */
+  async findClientAppointments(businessId: string, phone: string) {
+    const client = await this.prisma.client.findFirst({
+      where: { businessId, phone },
+    });
+
+    if (!client) {
+      return [];
+    }
+
+    return this.prisma.appointment.findMany({
+      where: {
+        clientId: client.id,
+        businessId,
+      },
+      include: {
+        professional: true,
+        services: {
+          include: {
+            service: true,
+          },
+        },
+      },
+      orderBy: {
+        startTime: 'asc',
+      },
+    });
+  }
+
+  /**
+   * Client-initiated rescheduling (respecting 24h cancellation/change policy)
+   */
+  async clientReschedule(id: string, businessId: string, newStartTime: string) {
+    const appt = await this.prisma.appointment.findFirst({
+      where: { id, businessId },
+      include: {
+        services: {
+          include: {
+            service: true,
+          },
+        },
+        client: true,
+        professional: true,
+        business: true,
+      },
+    });
+
+    if (!appt) {
+      throw new NotFoundException('Cita no encontrada');
+    }
+
+    // Enforce 24-hour advance policy
+    const now = Date.now();
+    const apptStart = new Date(appt.startTime).getTime();
+    const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+
+    if (apptStart - now < twentyFourHoursMs) {
+      throw new BadRequestException(
+        'Las citas solo se pueden reprogramar con al menos 24 horas de anticipación.',
+      );
+    }
+
+    const start = new Date(newStartTime);
+    if (isNaN(start.getTime())) {
+      throw new BadRequestException('Formato de fecha y hora inválido');
+    }
+
+    if (start.getTime() <= now) {
+      throw new BadRequestException('La nueva fecha y hora debe estar en el futuro');
+    }
+
+    const totalDurationMinutes = appt.services.reduce((sum, s) => sum + s.durationMinutes, 0);
+    const end = new Date(start.getTime() + totalDurationMinutes * 60 * 1000);
+    const dayOfWeek = start.getUTCDay();
+
+    // Verify availability (ignoring self)
+    const isAvailable = await this.checkProfessionalAvailabilityIgnoreSelf(
+      appt.professionalId,
+      start,
+      end,
+      dayOfWeek,
+      id,
+    );
+
+    if (!isAvailable) {
+      throw new BadRequestException('El estilista no está disponible en la nueva fecha/hora solicitada.');
+    }
+
+    const updatedAppt = await this.prisma.appointment.update({
+      where: { id },
+      data: {
+        startTime: start,
+        endTime: end,
+        emailReminderSent: false,
+      },
+      include: {
+        client: true,
+        professional: true,
+        services: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
+
+    return updatedAppt;
+  }
+
+  /**
+   * Client-initiated cancellation (respecting 24h cancellation/change policy)
+   */
+  async clientCancel(id: string, businessId: string) {
+    const appt = await this.prisma.appointment.findFirst({
+      where: { id, businessId },
+    });
+
+    if (!appt) {
+      throw new NotFoundException('Cita no encontrada');
+    }
+
+    // Enforce 24-hour advance policy
+    const now = Date.now();
+    const apptStart = new Date(appt.startTime).getTime();
+    const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+
+    if (apptStart - now < twentyFourHoursMs) {
+      throw new BadRequestException(
+        'Las citas solo se pueden cancelar con al menos 24 horas de anticipación.',
+      );
+    }
+
+    // Cancel appointment using updateStatus to trigger waitlist automatically!
+    return this.updateStatus(id, businessId, 'CANCELLED');
   }
 }

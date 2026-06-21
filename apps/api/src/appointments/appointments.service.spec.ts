@@ -2,12 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppointmentsService } from './appointments.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { WaitlistService } from '../waitlist/waitlist.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
   let prisma: PrismaService;
   let emailService: EmailService;
+  let waitlistService: WaitlistService;
 
   const mockPrismaService = {
     $transaction: jest.fn((callback) => callback(mockPrismaService)),
@@ -20,6 +22,7 @@ describe('AppointmentsService', () => {
     },
     professional: {
       findMany: jest.fn(),
+      findUnique: jest.fn(),
     },
     professionalSchedule: {
       findFirst: jest.fn(),
@@ -42,10 +45,19 @@ describe('AppointmentsService', () => {
     appointmentService: {
       create: jest.fn(),
     },
+    commission: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      deleteMany: jest.fn(),
+    },
   };
 
   const mockEmailService = {
     sendConfirmationEmail: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const mockWaitlistService = {
+    checkWaitlistAndNotify: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -60,12 +72,17 @@ describe('AppointmentsService', () => {
           provide: EmailService,
           useValue: mockEmailService,
         },
+        {
+          provide: WaitlistService,
+          useValue: mockWaitlistService,
+        },
       ],
     }).compile();
 
     service = module.get<AppointmentsService>(AppointmentsService);
     prisma = module.get<PrismaService>(PrismaService);
     emailService = module.get<EmailService>(EmailService);
+    waitlistService = module.get<WaitlistService>(WaitlistService);
 
     jest.clearAllMocks();
   });
@@ -469,6 +486,123 @@ describe('AppointmentsService', () => {
           emailReminderSent: false,
         },
         include: expect.any(Object),
+      });
+    });
+  });
+
+  describe('Phase 2 - Commissions & Waitlist', () => {
+    describe('updateStatus - commissions', () => {
+      it('should calculate and create commission when appointment is completed', async () => {
+        const mockAppt = {
+          id: 'appt-1',
+          businessId: 'business-1',
+          professionalId: 'prof-1',
+          totalPrice: 100,
+          status: 'PENDING',
+        };
+
+        const mockProf = {
+          id: 'prof-1',
+          commissionRate: 20,
+          commissionType: 'PERCENT',
+        };
+
+        mockPrismaService.appointment.findFirst.mockResolvedValueOnce(mockAppt);
+        mockPrismaService.appointment.update.mockResolvedValueOnce({ ...mockAppt, status: 'COMPLETED' });
+        mockPrismaService.commission.findFirst.mockResolvedValueOnce(null);
+        mockPrismaService.professional.findUnique.mockResolvedValueOnce(mockProf);
+
+        const result = await service.updateStatus('appt-1', 'business-1', 'COMPLETED');
+
+        expect(result.status).toBe('COMPLETED');
+        expect(mockPrismaService.commission.create).toHaveBeenCalledWith({
+          data: {
+            professionalId: 'prof-1',
+            appointmentId: 'appt-1',
+            amount: 20,
+            rateType: 'PERCENT',
+            rateValue: 20,
+          },
+        });
+      });
+
+      it('should remove commission when status is moved away from COMPLETED', async () => {
+        const mockAppt = {
+          id: 'appt-1',
+          businessId: 'business-1',
+          professionalId: 'prof-1',
+          totalPrice: 100,
+          status: 'COMPLETED',
+        };
+
+        mockPrismaService.appointment.findFirst.mockResolvedValueOnce(mockAppt);
+        mockPrismaService.appointment.update.mockResolvedValueOnce({ ...mockAppt, status: 'CANCELLED' });
+
+        await service.updateStatus('appt-1', 'business-1', 'CANCELLED');
+
+        expect(mockPrismaService.commission.deleteMany).toHaveBeenCalledWith({
+          where: { appointmentId: 'appt-1' },
+        });
+      });
+    });
+
+    describe('updateStatus - waitlist', () => {
+      it('should check waitlist when status is set to CANCELLED', async () => {
+        const mockAppt = {
+          id: 'appt-1',
+          businessId: 'business-1',
+          professionalId: 'prof-1',
+          totalPrice: 100,
+          status: 'CONFIRMED',
+        };
+
+        mockPrismaService.appointment.findFirst.mockResolvedValueOnce(mockAppt);
+        mockPrismaService.appointment.update.mockResolvedValueOnce({ ...mockAppt, status: 'CANCELLED' });
+
+        await service.updateStatus('appt-1', 'business-1', 'CANCELLED');
+
+        expect(mockWaitlistService.checkWaitlistAndNotify).toHaveBeenCalledWith('appt-1');
+      });
+    });
+
+    describe('clientPortal', () => {
+      it('should find client appointments by phone', async () => {
+        mockPrismaService.client.findFirst.mockResolvedValueOnce({ id: 'client-1' });
+        mockPrismaService.appointment.findMany.mockResolvedValueOnce([{ id: 'appt-1' }]);
+
+        const result = await service.findClientAppointments('business-1', '123456789');
+
+        expect(result).toHaveLength(1);
+        expect(mockPrismaService.client.findFirst).toHaveBeenCalledWith({
+          where: { businessId: 'business-1', phone: '123456789' },
+        });
+      });
+
+      it('should enforce 24-hour limit on rescheduling', async () => {
+        const mockAppt = {
+          id: 'appt-1',
+          businessId: 'business-1',
+          startTime: new Date(Date.now() + 12 * 60 * 60 * 1000), // starts in 12 hours
+          services: [],
+        };
+        mockPrismaService.appointment.findFirst.mockResolvedValueOnce(mockAppt);
+
+        await expect(service.clientReschedule('appt-1', 'business-1', new Date().toISOString())).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+
+      it('should enforce 24-hour limit on cancellation', async () => {
+        const mockAppt = {
+          id: 'appt-1',
+          businessId: 'business-1',
+          startTime: new Date(Date.now() + 12 * 60 * 60 * 1000), // starts in 12 hours
+        };
+        mockPrismaService.appointment.findFirst.mockResolvedValueOnce(mockAppt);
+
+        await expect(service.clientCancel('appt-1', 'business-1')).rejects.toThrow(
+          BadRequestException,
+        );
       });
     });
   });

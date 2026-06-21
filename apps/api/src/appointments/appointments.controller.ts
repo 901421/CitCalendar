@@ -48,5 +48,30 @@ export class AppointmentsController {
     const businessId = req.user.businessId;
     return this.appointmentsService.reschedule(id, businessId, startTime);
   }
+
+  @Get('client-portal')
+  async getClientAppointments(
+    @Query('phone') phone: string,
+    @Query('businessId') businessId: string,
+  ) {
+    return this.appointmentsService.findClientAppointments(businessId, phone);
+  }
+
+  @Patch('client-portal/:id/reschedule')
+  async clientReschedule(
+    @Param('id') id: string,
+    @Body('businessId') businessId: string,
+    @Body('startTime') startTime: string,
+  ) {
+    return this.appointmentsService.clientReschedule(id, businessId, startTime);
+  }
+
+  @Patch('client-portal/:id/cancel')
+  async clientCancel(
+    @Param('id') id: string,
+    @Body('businessId') businessId: string,
+  ) {
+    return this.appointmentsService.clientCancel(id, businessId);
+  }
 }
 

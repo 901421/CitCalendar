@@ -11,6 +11,7 @@ import { ClientsModule } from './clients/clients.module';
 import { ServicesModule } from './services/services.module';
 import { ProfessionalsModule } from './professionals/professionals.module';
 import { EmailModule } from './email/email.module';
+import { WaitlistModule } from './waitlist/waitlist.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EmailModule } from './email/email.module';
     ServicesModule,
     ProfessionalsModule,
     EmailModule,
+    WaitlistModule,
   ],
   controllers: [AppController],
   providers: [AppService],
