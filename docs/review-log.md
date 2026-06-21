@@ -89,3 +89,42 @@ Todas las inconsistencias y oportunidades de calidad señaladas por los subagent
      - **Creación de Citas**: Pantalla de creación manual totalmente interactiva (carga servicios y profesionales dinámicamente, busca huecos en tiempo real llamando a la API y realiza la reserva real).
      - **Reprogramación**: Diálogo interactivo en el detalle de cita que abre calendario, consulta horarios libres y realiza la reprogramación mediante `PATCH /appointments/:id` con recarga de agenda inmediata.
      - **CRM y Caja**: El listado de transacciones de Caja y las métricas de Stats se conectaron a los datos reales recuperados de la agenda diaria. La Ficha de Cliente CRM ahora carga de manera reactiva el historial completo de visitas desde el API.
+
+---
+
+## Ronda de Revisión 2: Cierre de Fase 2 (Diferencial Competitivo)
+**Fecha:** 21 de Junio, 2026  
+**Módulos implementados y verificados:** `apps/api` (NestJS), `apps/web` (Next.js), `apps/admin-app` (Flutter).
+
+### 1. Funcionalidades Incorporadas
+
+#### A. Backend API (NestJS)
+- **Módulo de Comisiones**:
+  - Hook automático en `AppointmentsService.updateStatus` que calcula y crea registros de comisión en la tabla `Commission` cuando el estado de la cita se establece en `COMPLETED`. Si el estado cambia a otro valor, la comisión correspondiente es eliminada.
+  - Endpoint `GET /professionals/:id/commissions` con filtros opcionales de rango de fechas (`startDate` y `endDate`) que devuelve el desglose de servicios completados y la comisión acumulada del profesional.
+- **Módulo de Lista de Espera**:
+  - Endpoint `POST /waitlist` para el registro público de solicitudes.
+  - Hook en `AppointmentsService.updateStatus` que se ejecuta al cancelar una cita (`CANCELLED`). Escanea la lista de espera buscando registros con estado `WAITING` para esa fecha y rango horario, priorizando por orden de creación. Si encuentra coincidencia, envía un email de notificación inmediato usando `EmailService.sendWaitlistEmail` y actualiza su estado a `NOTIFIED`.
+- **Portal de Clientes Backend**:
+  - Endpoint `GET /appointments/client-portal` para consultar las citas asociadas a un teléfono.
+  - Endpoints de reprogramación y cancelación pública (`PATCH /appointments/client-portal/:id/reschedule` y `PATCH /appointments/client-portal/:id/cancel`) con una regla de negocio estricta de antelación mínima de 24 horas.
+
+#### B. Web Pública (Next.js)
+- **Portal de Autogestión de Clientes**:
+  - Vista integrada de **Mis Reservas** accesible en la navegación superior, permitiendo consultar citas activas mediante el teléfono del cliente.
+  - Opciones visuales de reprogramación (con calendario y selector de huecos libres) y cancelación en tiempo real, respetando la política de protección de 24 horas.
+- **Registro en Lista de Espera**:
+  - Si un cliente intenta reservar en un día sin huecos libres, el selector de horarios muestra una opción destacada para unirse a la lista de espera, rellenando sus preferencias de estilista y rango de horas.
+
+#### C. App de Administración (Flutter)
+- **Liquidación de Comisiones**:
+  - Incorporada pantalla `CommissionsScreen` que permite seleccionar barbero y consultar su comisión acumulada del mes con desglose de servicios completados.
+- **Monitoreo de Lista de Espera**:
+  - Pantalla `WaitlistScreen` añadida al menú "Más", permitiendo al administrador auditar la lista de espera activa y eliminar registros obsoletos.
+- **Consistencia en API**:
+  - Ampliación de `ApiClient` con métodos `getWaitlist`, `deleteWaitlistEntry` y `getProfessionalCommissions`.
+  - Creación de `WaitlistCubit` y `CommissionsCubit` para el manejo reactivo del estado de estas pantallas con soporte de failover local mock.
+
+### 2. Calidad y Verificación
+- **Next.js Production Build**: Compilación de producción en local finalizada con éxito con Turbopack, con rutas dinámicas renderizadas bajo demanda.
+- **Backend Jest Tests**: Ampliación de la suite de pruebas unitarias de 26 a 32 tests Jest. Se agregaron pruebas para la creación y remoción de registros de comisión, triggers automáticos de lista de espera en cancelaciones, y la regla de validación de 24 horas de antelación en cambios de fecha y anulaciones. Todos los tests pasaron exitosamente (`32/32 exitosos`).
