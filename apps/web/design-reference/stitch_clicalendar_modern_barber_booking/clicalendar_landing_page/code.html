@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CLICALENDAR | Precision &amp; Style Barbershop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Playfair+Display:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @layer base {
+            body {
+                @apply bg-surface text-on-surface font-body-md;
+                background-attachment: fixed;
+            }
+        }
+        .grain-overlay {
+            pointer-events: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(242, 202, 80, 0.15);
+        }
+        .inner-glow-hover:hover {
+            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-fixed": "#e5e2e1",
+                        "surface-container-highest": "#353534",
+                        "tertiary-container": "#b4b2b2",
+                        "surface-bright": "#3a3939",
+                        "secondary": "#dfc0b2",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#28180f",
+                        "on-secondary-fixed-variant": "#574237",
+                        "primary-fixed-dim": "#e9c349",
+                        "outline": "#99907c",
+                        "inverse-surface": "#e5e2e1",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-container": "#201f1f",
+                        "on-surface": "#e5e2e1",
+                        "surface-dim": "#131313",
+                        "surface-variant": "#353534",
+                        "secondary-fixed": "#fcdccd",
+                        "on-primary-fixed-variant": "#574500",
+                        "tertiary": "#d0cdcd",
+                        "background": "#131313",
+                        "outline-variant": "#4d4635",
+                        "surface-tint": "#e9c349",
+                        "on-secondary": "#3f2c22",
+                        "on-primary": "#3c2f00",
+                        "secondary-container": "#5a443a",
+                        "inverse-on-surface": "#313030",
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "surface-container-high": "#2a2a2a",
+                        "primary": "#f2ca50",
+                        "primary-fixed": "#ffe088",
+                        "on-background": "#e5e2e1",
+                        "inverse-primary": "#735c00",
+                        "on-surface-variant": "#d0c5af",
+                        "on-secondary-container": "#d0b2a4",
+                        "error-container": "#93000a",
+                        "on-tertiary": "#303030",
+                        "secondary-fixed-dim": "#dfc0b2",
+                        "surface": "#131313",
+                        "on-tertiary-container": "#454545",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed": "#241a00",
+                        "on-primary-container": "#554300",
+                        "primary-container": "#d4af37",
+                        "on-tertiary-fixed": "#1b1b1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "48px",
+                        "stack-sm": "12px",
+                        "stack-md": "24px",
+                        "container-padding-mobile": "20px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "container-padding-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Playfair Display"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Playfair Display"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface overflow-x-hidden selection:bg-primary selection:text-on-primary">
+<div class="grain-overlay"></div>
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/95 backdrop-blur-md border-b border-secondary-container/20 shadow-sm">
+<nav class="flex justify-between items-center h-20 px-container-padding-desktop max-w-7xl mx-auto">
+<div class="font-display-lg text-display-lg uppercase tracking-tighter text-primary dark:text-primary">
+                CLICALENDAR
+            </div>
+<div class="hidden md:flex items-center gap-stack-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#services">Services</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#barbers">Barbers</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#gallery">Gallery</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#locations">Locations</a>
+</div>
+<button class="bg-primary text-on-primary px-8 py-3 font-bold uppercase tracking-widest text-label-sm inner-glow-hover active:scale-95 transition-all duration-300">
+                Book Now
+            </button>
+</nav>
+</header>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative h-[921px] flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10"></div>
+<div class="w-full h-full bg-cover bg-center" data-alt="A cinematic, high-contrast photograph of a luxury modern barbershop interior at night. Dark charcoal walls, warm amber pendant lighting, and premium leather barber chairs create an atmosphere of exclusive urban sophistication. The air is slightly hazy, catching the beams of golden light reflecting off polished chrome and dark wood surfaces. The mood is moody, masculine, and high-end." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDaqQLXbpdueGyN86aLpoJyB0KOWo_H6hIJ25U8lSb5ptbkt3yk32Tedwq7tYBcjK8Z4S3uax_zKYXIHfaumFD5AS1Cxfla18-yL1bJVPfxQdkufM3ZFa5KkpvL_0g766uXHR1RUbIpef5S5r7EcXBqFGoyIMN5qW7iME3HennnDoOZsaE2BWcg0PJ0hy40Hdr6S0A0PVGVWC8Hk68kZv6drsg_fj9kDhCAtlwNUbL003zqF4wkejUqu2zDcmD9Y0rdOXsLOmSKTf4')"></div>
+</div>
+<div class="relative z-20 max-w-7xl mx-auto px-container-padding-desktop w-full">
+<div class="max-w-2xl">
+<h1 class="font-display-lg text-display-lg text-white mb-4 leading-none">
+                        CLICALENDAR.<br/><span class="text-primary">PRECISION &amp; STYLE.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-stack-md max-w-md">
+                        Elegance for the modern gentleman. Experience the art of grooming in an environment designed for absolute comfort and distinction.
+                    </p>
+<div class="flex gap-4">
+<button class="bg-primary text-on-primary px-10 py-4 font-bold uppercase tracking-widest text-label-sm inner-glow-hover transition-all">
+                            Book Appointment
+                        </button>
+<button class="border border-primary text-primary px-10 py-4 font-bold uppercase tracking-widest text-label-sm hover:bg-primary/10 transition-all">
+                            Our Services
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Services Section -->
+<section class="py-stack-lg bg-surface" id="services">
+<div class="max-w-7xl mx-auto px-container-padding-desktop">
+<div class="flex flex-col md:flex-row justify-between items-end mb-stack-lg gap-gutter">
+<div>
+<span class="text-primary font-label-sm uppercase tracking-[0.2em]">Our Craft</span>
+<h2 class="font-display-lg text-display-lg mt-2">Premium Services</h2>
+</div>
+<p class="text-on-surface-variant max-w-sm mb-2">Tailored grooming experiences that respect the tradition of barbering while embracing modern precision.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Service Card 1 -->
+<div class="group bg-surface-container-low border border-outline-variant/30 p-stack-md hover:border-primary/50 transition-all duration-500">
+<div class="mb-stack-md overflow-hidden">
+<div class="h-64 w-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700 filter grayscale brightness-75 group-hover:grayscale-0" data-alt="A sharp, black-and-white macro photograph of a professional barber performing a precise fade haircut. The focus is on the steady hand and the clean lines of the hair, with deep shadows and high-key lighting highlighting the technical skill. Dark obsidian tones and golden light reflections maintain the premium brand aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDEGZhH_TIuKNHhUfK-1MxlLca1cObgOepG-ZsM3YxsYeVVNRI0Sdy6gmYNEvtf0-VGiQWA_PRRqo83ULF2gcigfqnBET95UpLvJXLG7JdLzifQIt4w_PqdW5dJS9m_untpbNr5UMjhck7lEcaT1Sq38XW7Nt8dP2FwEb34vlhO_CDeu9ei33LTyQU_6k0QvV9bzk0HZx7sE4YNE_npNtCX8BXM61yOmYFY2BV8z_s7geujfUlq3O44QOgRUw-NS40uD6Rj7TD5jS0')"></div>
+</div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md">Haircut</h3>
+<span class="text-primary font-bold text-headline-md">25€</span>
+</div>
+<p class="text-on-surface-variant font-body-md mb-stack-md">A bespoke cutting experience including consultation, wash, and styling with premium products.</p>
+<button class="w-full py-3 border border-outline-variant group-hover:border-primary group-hover:text-primary transition-colors uppercase text-label-sm font-bold">Details</button>
+</div>
+<!-- Service Card 2 -->
+<div class="group bg-surface-container-low border border-outline-variant/30 p-stack-md hover:border-primary/50 transition-all duration-500">
+<div class="mb-stack-md overflow-hidden">
+<div class="h-64 w-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700 filter grayscale brightness-75 group-hover:grayscale-0" data-alt="Close-up artistic shot of a barber trimming a well-groomed beard with traditional steel scissors. The lighting is moody and focused, with warm amber glows contrasting against dark charcoal backgrounds. The image emphasizes precision, luxury grooming, and the industrial-chic atmosphere of an urban barbershop." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDg7hvxl9SjLlCMFP08E0zq4IOmU5S4v7H17-jr4lTCTF4nBRBFtPzC6RF2HFZsdRVeD5xha9tB9Ap1-wMD8nOq7wfQVRKtO8B53qlJ2CMGYhc9IfkcvJS8PQwPA9yPGAsO3EDX1ot6KQ02uLCArBMYUbq0p1vXo18IhHmYI2nFUKtq1iB2lNdpr4Cf9_i4HlU9iYJMRFqlzZ8-t9zYZXljmn1sbxnqH3Swznl1mWpv24FcMJKNHgVT1PUmV5oXlkoxoO8OJQpYdWs')"></div>
+</div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md">Beard</h3>
+<span class="text-primary font-bold text-headline-md">15€</span>
+</div>
+<p class="text-on-surface-variant font-body-md mb-stack-md">Expert beard shaping and hot towel treatment to maintain a sharp, masculine profile.</p>
+<button class="w-full py-3 border border-outline-variant group-hover:border-primary group-hover:text-primary transition-colors uppercase text-label-sm font-bold">Details</button>
+</div>
+<!-- Service Card 3 -->
+<div class="group bg-surface-container-low border border-outline-variant/30 p-stack-md hover:border-primary/50 transition-all duration-500">
+<div class="mb-stack-md overflow-hidden">
+<div class="h-64 w-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700 filter grayscale brightness-75 group-hover:grayscale-0" data-alt="A wide-angle, luxurious lifestyle shot showing a customer receiving a full spa-like barber service. Hot towels, straight razors, and premium oils are visible. The setting is dark and atmospheric, with rich wood textures and golden lighting accents, embodying the total relaxation of a high-end gentleman's grooming club." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAArvg24NqgEer7uoklB0XdWEo3Cnwu_nU92uTFayrFV5hROdWuObwRkcsIRZm82awnWLvSJXJOCTvp1HzV89IXqEuovM5nOcRhpd3Rhlddflzgv3s6Z3dxQ0XlwPMDQu2Ucv5ZUyegf1bBS2dj1VkmU7aFGEVZEYPRuHUTnMn0OvHkUR_Qr9qqqaQPlzuF-WT-hd-oYPPH6KCThbMPgnozdWRZD3CivBPB3OzH3ID1T5XUHsexL5R7T8GU1DUVg3WokGWNqPsKpjs')"></div>
+</div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md">Full Service</h3>
+<span class="text-primary font-bold text-headline-md">35€</span>
+</div>
+<p class="text-on-surface-variant font-body-md mb-stack-md">The ultimate package: signature haircut, beard sculpting, and luxury hot towel shave.</p>
+<button class="w-full py-3 border border-outline-variant group-hover:border-primary group-hover:text-primary transition-colors uppercase text-label-sm font-bold">Details</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Barber Team Section -->
+<section class="py-stack-lg bg-surface-container-lowest" id="barbers">
+<div class="max-w-7xl mx-auto px-container-padding-desktop">
+<div class="text-center mb-stack-lg">
+<span class="text-primary font-label-sm uppercase tracking-[0.2em]">The Artisans</span>
+<h2 class="font-display-lg text-display-lg mt-2">Meet Our Barbers</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Barber 1 -->
+<div class="text-center group">
+<div class="relative mb-stack-sm aspect-[3/4] overflow-hidden grayscale hover:grayscale-0 transition-all duration-700">
+<div class="w-full h-full bg-cover bg-center" data-alt="A portrait of Alex, a master barber with a sharp, professional look. He is standing in a moody, dark-lit studio with industrial elements in the background. The lighting is dramatic, highlighting his focused expression and the quality of his own grooming. The aesthetic is dark, premium, and sophisticated, consistent with a luxury urban brand." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDS7krRbnA07goT2i1jfsQwZLWVShdNPDacAdeb7I2ByXCT7XymgY-DbIXKQ5rTOYNwqwNSPgjD512abnuTGERRes5Y_fry3uEiZR9Q5lf5Wjoys2VwHY3cBEp9qf7RnWL-CTBXaL0sNfbiGcazv33v2KZWJPocRE_rKLnIR2zj0PeKc8GBOiz8ly1yXeB4MsB4f457d31N85Xl_OOfmVvGp4rbAUZ3Xcfi6tmpnHViRjW0K8vUpXH7nkE3mXtWn-XQA7fTjhrUCTU')"></div>
+<div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">Alex</h3>
+<p class="text-on-surface-variant font-label-sm uppercase tracking-widest mt-1">Master Barber</p>
+</div>
+<!-- Barber 2 -->
+<div class="text-center group">
+<div class="relative mb-stack-sm aspect-[3/4] overflow-hidden grayscale hover:grayscale-0 transition-all duration-700">
+<div class="w-full h-full bg-cover bg-center" data-alt="A portrait of Julian, a beard specialist, characterized by a well-groomed, full beard and a stylish, modern aesthetic. He is posed in a dark, atmospheric barbershop setting. Warm lighting accents his features against deep charcoal shadows. The image communicates expertise and a curated, masculine style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD_M9CbgkYNc8cWl-1xp9O-fKiGZfa4E4fPClU-nijEwpu-V8DFN1mQmsJY0lsNnZ8aWKrtPbDPxk83UVKYl9ghfGW8WP25OCY64R2RTY430urRTgz7ff5qX_nHKO2_hmiz7Tn0oB2-O1gHdYC8DawSxqsCeSvW2lcTDmxAVfb5wH0-HCtK4LXqU62EkPIar4_kI-Y9myXY_aNWV3CAYVxN3jYZmpgUxp3lSf92mfr5aKFsn5sKh3U_ttT8he8-ItSiW29Gecf539U')"></div>
+<div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">Julian</h3>
+<p class="text-on-surface-variant font-label-sm uppercase tracking-widest mt-1">Beard Specialist</p>
+</div>
+<!-- Barber 3 -->
+<div class="text-center group">
+<div class="relative mb-stack-sm aspect-[3/4] overflow-hidden grayscale hover:grayscale-0 transition-all duration-700">
+<div class="w-full h-full bg-cover bg-center" data-alt="A portrait of Marc, an expert in classic shaves, holding a traditional straight razor. He has a clean, timeless look, standing in a high-end grooming lounge with rich leather and wood textures. The mood is one of tradition meeting modern luxury, with high-contrast lighting and deep obsidian tones." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAey4HHwKmE2Aa4h6Rs_ob8FYWAV7g7oe8uhYQZ02WzLyfAjJ3YDKp6DT5pUFBUvxApG6LFVHW-WVw4lYF60XsjV3doi3AjC6TWMsytFUBsnNk0NVLQaLsZfB2CCHu0ndKuQW5V0K5j8xxR4VAFb430-vHGqSkEWryaX6O8_0g0wuvaI4JH1TAQgSmWXzIe5jzIHdPzdtsmqP-TelJm9TTrwIlfDtQw8KQoqsGK5wLxQy8DvG4_N9AurAkSzZ8s_LjnoBHL9AD0XEE')"></div>
+<div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">Marc</h3>
+<p class="text-on-surface-variant font-label-sm uppercase tracking-widest mt-1">Classic Shaves</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Reviews Section -->
+<section class="py-stack-lg bg-surface relative overflow-hidden">
+<!-- Abstract background element -->
+<div class="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
+<div class="max-w-7xl mx-auto px-container-padding-desktop relative z-10">
+<div class="mb-stack-lg">
+<span class="text-primary font-label-sm uppercase tracking-[0.2em]">Testimonials</span>
+<h2 class="font-display-lg text-display-lg mt-2">The Gentlemen's Choice</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="bg-surface-container p-stack-md border-l-4 border-primary">
+<div class="flex text-primary mb-stack-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-md text-on-surface-variant italic mb-stack-sm">"The attention to detail here is unparalleled. Alex really takes his time to understand exactly what you want. The atmosphere is just the cherry on top."</p>
+<cite class="font-bold text-on-surface not-italic">— James R.</cite>
+</div>
+<div class="bg-surface-container p-stack-md border-l-4 border-primary">
+<div class="flex text-primary mb-stack-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-md text-on-surface-variant italic mb-stack-sm">"Best beard trim I've ever had. Julian is a magician with the blade. I walk out feeling like a new man every single time. Truly premium."</p>
+<cite class="font-bold text-on-surface not-italic">— Michael T.</cite>
+</div>
+<div class="bg-surface-container p-stack-md border-l-4 border-primary">
+<div class="flex text-primary mb-stack-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-md text-on-surface-variant italic mb-stack-sm">"A modern shop that respects old-school values. The 'Full Service' is a must. It's not just a haircut, it's a relaxation ritual."</p>
+<cite class="font-bold text-on-surface not-italic">— David L.</cite>
+</div>
+</div>
+</div>
+</section>
+<!-- Map & Info Section -->
+<section class="py-stack-lg bg-surface-container-low border-y border-outline-variant/10" id="locations">
+<div class="max-w-7xl mx-auto px-container-padding-desktop">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-lg items-stretch">
+<div class="space-y-stack-md">
+<div>
+<span class="text-primary font-label-sm uppercase tracking-[0.2em]">Location</span>
+<h2 class="font-display-lg text-display-lg mt-2">Visit the Atelier</h2>
+</div>
+<div class="space-y-4">
+<div class="flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary mt-1">location_on</span>
+<div>
+<h4 class="font-bold">Address</h4>
+<p class="text-on-surface-variant">123 Urban Avenue, Luxury District<br/>75001 Paris, France</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary mt-1">schedule</span>
+<div>
+<h4 class="font-bold">Opening Hours</h4>
+<p class="text-on-surface-variant">Mon-Sat: 09:00 – 20:00<br/>Sunday: Closed</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary mt-1">call</span>
+<div>
+<h4 class="font-bold">Contact</h4>
+<p class="text-on-surface-variant">+33 1 23 45 67 89<br/>bookings@clicalendar.com</p>
+</div>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-8 py-3 font-bold uppercase tracking-widest text-label-sm inner-glow-hover active:scale-95 transition-all mt-stack-sm">
+                            Get Directions
+                        </button>
+</div>
+<div class="min-h-[400px] border border-outline-variant/20 relative group overflow-hidden">
+<img class="w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-75 transition-all duration-700" data-location="Paris, France" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4UBEzY58Ap_XxtQSzPtvGQ6HJFlReLjP4PlSgOh5dj7EfL9ih3W5X6ipATX3RAkFdLVvFqHDVnc-7lc2ahLYdE7D7GJodkL4EeI-Xf7tyTKc6nTZLw7d2Xa2wUjJMszvwHE8TQ7V4N6Iha2VACD-EgwFuQjDSoCuE8hXA6hWK7bKvzZjIDuiugg39ZNVCYGBr70ED8xuwh2r5cx3dX4kPrRTF-V35N_S4R7R87an4kMnJGD_1E6LnuYP9n5sayCffPP4PGH0P9_I"/>
+<div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg bg-surface-container-lowest border-t border-secondary-container/10">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-container-padding-desktop max-w-7xl mx-auto">
+<div class="flex flex-col gap-4">
+<div class="font-display-lg text-display-lg text-primary dark:text-primary uppercase">CLICALENDAR</div>
+<p class="text-on-surface-variant max-w-xs">Redefining the modern grooming experience with precision, style, and exclusive atmosphere.</p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<h5 class="text-primary font-bold uppercase text-label-sm mb-2">Company</h5>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Terms of Service</a>
+</div>
+<div class="flex flex-col gap-2">
+<h5 class="text-primary font-bold uppercase text-label-sm mb-2">Explore</h5>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Careers</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Contact</a>
+</div>
+</div>
+<div class="flex flex-col gap-4 md:items-end">
+<h5 class="text-primary font-bold uppercase text-label-sm">Follow Us</h5>
+<div class="flex gap-4">
+<a class="w-10 h-10 border border-outline-variant flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all" href="#">
+<span class="material-symbols-outlined">share</span>
+</a>
+<a class="w-10 h-10 border border-outline-variant flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all" href="#">
+<span class="material-symbols-outlined">camera</span>
+</a>
+</div>
+<div class="mt-auto text-on-surface-variant font-label-sm text-right">
+                    © 2024 CLICALENDAR. PRECISION &amp; STYLE.
+                </div>
+</div>
+</div>
+</footer>
+<script>
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section > div').forEach(el => {
+            el.classList.add('transition-all', 'duration-1000', 'opacity-0', 'translate-y-10');
+            observer.observe(el);
+        });
+    </script>
+</body></html>

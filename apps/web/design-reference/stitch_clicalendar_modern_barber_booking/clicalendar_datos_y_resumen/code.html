@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Finalize Your Appointment | CLICALENDAR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:wght@100..900&display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "surface-container-lowest": "#0e0e0e",
+                    "tertiary-fixed": "#e5e2e1",
+                    "surface-container-highest": "#353534",
+                    "tertiary-container": "#b4b2b2",
+                    "surface-bright": "#3a3939",
+                    "secondary": "#dfc0b2",
+                    "on-error": "#690005",
+                    "on-secondary-fixed": "#28180f",
+                    "on-secondary-fixed-variant": "#574237",
+                    "primary-fixed-dim": "#e9c349",
+                    "outline": "#99907c",
+                    "inverse-surface": "#e5e2e1",
+                    "surface-container-low": "#1c1b1b",
+                    "surface-container": "#201f1f",
+                    "on-surface": "#e5e2e1",
+                    "surface-dim": "#131313",
+                    "surface-variant": "#353534",
+                    "secondary-fixed": "#fcdccd",
+                    "on-primary-fixed-variant": "#574500",
+                    "tertiary": "#d0cdcd",
+                    "background": "#131313",
+                    "outline-variant": "#4d4635",
+                    "surface-tint": "#e9c349",
+                    "on-secondary": "#3f2c22",
+                    "on-primary": "#3c2f00",
+                    "secondary-container": "#5a443a",
+                    "inverse-on-surface": "#313030",
+                    "error": "#ffb4ab",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "surface-container-high": "#2a2a2a",
+                    "primary": "#f2ca50",
+                    "primary-fixed": "#ffe088",
+                    "on-background": "#e5e2e1",
+                    "inverse-primary": "#735c00",
+                    "on-surface-variant": "#d0c5af",
+                    "on-secondary-container": "#d0b2a4",
+                    "error-container": "#93000a",
+                    "on-tertiary": "#303030",
+                    "secondary-fixed-dim": "#dfc0b2",
+                    "surface": "#131313",
+                    "on-tertiary-container": "#454545",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed": "#241a00",
+                    "on-primary-container": "#554300",
+                    "primary-container": "#d4af37",
+                    "on-tertiary-fixed": "#1b1b1c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "48px",
+                    "stack-sm": "12px",
+                    "stack-md": "24px",
+                    "container-padding-mobile": "20px",
+                    "gutter": "24px",
+                    "base": "8px",
+                    "container-padding-desktop": "40px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "display-lg": ["Playfair Display"],
+                    "display-lg-mobile": ["Playfair Display"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Playfair Display"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #0A0A0A;
+            color: #e5e2e1;
+        }
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+        }
+        .form-input-shadow {
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased overflow-x-hidden">
+<div class="noise-overlay"></div>
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/95 backdrop-blur-md border-b border-secondary-container/20 shadow-sm">
+<div class="flex justify-between items-center h-20 px-container-padding-mobile md:px-container-padding-desktop max-w-7xl mx-auto">
+<div class="font-display-lg text-[24px] md:text-display-lg uppercase tracking-tighter text-primary">
+                CLICALENDAR
+            </div>
+<div class="hidden md:flex items-center space-x-gutter">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Services</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Barbers</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Gallery</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Locations</a>
+<button class="bg-primary text-on-primary px-6 py-2 font-bold hover:opacity-80 transition-all duration-300 active:scale-95">Book Now</button>
+</div>
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<main class="relative pt-32 pb-stack-lg px-container-padding-mobile z-10 max-w-5xl mx-auto">
+<!-- Back Navigation -->
+<div class="mb-stack-md">
+<button class="group flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest">Back to selection</span>
+</button>
+</div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-stack-lg">
+            Finalize Your Appointment
+        </h1>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- Form Section -->
+<div class="lg:col-span-7 space-y-stack-md">
+<section class="bg-surface-container border border-[#2C1B12] p-stack-md rounded-lg">
+<form class="space-y-6">
+<div class="space-y-4">
+<div class="group">
+<label class="block font-label-sm text-label-sm text-primary uppercase mb-2 tracking-widest transition-colors group-focus-within:text-primary">Full Name</label>
+<input class="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-on-surface p-4 rounded-none focus:ring-0 focus:border-primary transition-all form-input-shadow outline-none" placeholder="John Doe" type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="group">
+<label class="block font-label-sm text-label-sm text-primary uppercase mb-2 tracking-widest">Email Address</label>
+<input class="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-on-surface p-4 rounded-none focus:ring-0 focus:border-primary transition-all form-input-shadow outline-none" placeholder="john@example.com" type="email"/>
+</div>
+<div class="group">
+<label class="block font-label-sm text-label-sm text-primary uppercase mb-2 tracking-widest">Phone Number</label>
+<input class="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-on-surface p-4 rounded-none focus:ring-0 focus:border-primary transition-all form-input-shadow outline-none" placeholder="+34 000 000 000" type="tel"/>
+</div>
+</div>
+<div class="group">
+<label class="block font-label-sm text-label-sm text-primary uppercase mb-2 tracking-widest">Note for the barber</label>
+<textarea class="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-on-surface p-4 rounded-none focus:ring-0 focus:border-primary transition-all form-input-shadow outline-none resize-none" placeholder="Any specific requests or requirements..." rows="4"></textarea>
+</div>
+</div>
+<div class="flex items-start gap-3 pt-2">
+<input class="mt-1 bg-[#0A0A0A] border-[#1F1F1F] text-primary focus:ring-primary rounded-none" id="terms" type="checkbox"/>
+<label class="text-on-surface-variant font-label-sm leading-tight" for="terms">
+                                I agree to the <a class="text-primary underline" href="#">Terms of Service</a> and understand the 24-hour cancellation policy.
+                            </label>
+</div>
+</form>
+</section>
+</div>
+<!-- Summary Box Section -->
+<aside class="lg:col-span-5 lg:sticky lg:top-24">
+<div class="bg-[#1F1F1F] border border-[#2C1B12] overflow-hidden relative">
+<!-- Subtle Texture Overlay -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: url('https://www.transparenttextures.com/patterns/black-linen-2.png');"></div>
+<div class="p-stack-md relative z-10">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+                            Booking Summary
+                        </h2>
+<div class="space-y-4 border-t border-[#2C1B12] pt-stack-sm">
+<div class="flex justify-between items-center group">
+<span class="font-label-sm text-on-surface-variant uppercase tracking-widest">Service</span>
+<span class="font-body-md text-on-surface font-bold text-right">Combo Corte + Barba</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant uppercase tracking-widest">Barber</span>
+<div class="flex items-center gap-3">
+<span class="font-body-md text-on-surface">Alex</span>
+<div class="w-8 h-8 rounded-full border border-primary/30 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional barber named Alex, male with a sharp beard and stylish haircut, captured in a moody cinematic portrait with deep shadows and high-contrast lighting. The setting is a luxury dark-themed barbershop with soft amber glows in the background, reinforcing a premium and masculine atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0qVC5vrfu_H10YfB00_Efdv0G_xcG2Lb0PmfFjm0X0Qq85gmCt5D7XFEJM-bNcNJrGz8dczyJDRG0JhGwLFQUwgDnJ7N1Vn-qQi3w0-w6Z2ceZ805e70eCj5HKkDnS0A7DCn2Y3pxrIRcPibNqR1880V7PZRDK47mvJ9aYoLMdAp9kziUJ3z6-EIBUz0HhrEAON7QZeE1g79VRBWHMhtWPimzSRfLmtC4usy01hNqYKbUuxcCvsyw5jX9Fex-9xt1XgpkPbaEif8"/>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant uppercase tracking-widest">Date</span>
+<span class="font-body-md text-on-surface">Friday, Oct 24th</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant uppercase tracking-widest">Time</span>
+<span class="font-body-md text-primary font-bold">17:00</span>
+</div>
+<div class="pt-stack-sm mt-stack-sm border-t border-[#2C1B12]">
+<div class="flex justify-between items-end">
+<span class="font-label-sm text-primary uppercase tracking-widest font-bold">Total</span>
+<span class="text-[32px] font-display-lg text-primary leading-none">35€</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-stack-md bg-primary text-on-primary py-5 px-6 font-bold uppercase tracking-[0.2em] hover:brightness-110 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 shadow-xl">
+                            Confirm Appointment
+                            <span class="material-symbols-outlined">chevron_right</span>
+</button>
+<p class="mt-4 text-center text-on-surface-variant font-label-sm opacity-60">
+                            Secure payment via encrypted gateway
+                        </p>
+</div>
+</div>
+<!-- Atmospheric Card -->
+<div class="mt-gutter p-6 bg-surface-container-low border border-[#2C1B12] flex items-start gap-4">
+<span class="material-symbols-outlined text-primary text-3xl">info</span>
+<div>
+<h4 class="font-label-sm text-on-surface uppercase tracking-widest mb-1">Safety Protocols</h4>
+<p class="font-label-sm text-on-surface-variant leading-relaxed">
+                            All tools are sterilized after every session. We ensure a premium, clean environment for your peace of mind.
+                        </p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg bg-surface-container-lowest border-t border-secondary-container/10">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-container-padding-mobile md:px-container-padding-desktop max-w-7xl mx-auto">
+<div class="space-y-4">
+<div class="font-display-lg text-display-lg text-primary">CLICALENDAR</div>
+<p class="text-on-surface-variant font-body-md max-w-xs">
+                    Redefining the modern grooming experience with precision, style, and exclusive atmosphere.
+                </p>
+</div>
+<div class="flex flex-col space-y-2">
+<span class="font-label-sm text-primary uppercase tracking-[0.2em] mb-2">Quick Links</span>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Careers</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+<div class="space-y-4">
+<span class="font-label-sm text-primary uppercase tracking-[0.2em] mb-2">Stay Sharp</span>
+<div class="flex gap-4">
+<a class="w-10 h-10 border border-secondary-container/30 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-all" href="#">
+<span class="material-symbols-outlined">share</span>
+</a>
+<a class="w-10 h-10 border border-secondary-container/30 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-all" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+</div>
+<div class="text-on-surface-variant font-body-md pt-4">
+                    © 2024 CLICALENDAR. PRECISION & STYLE.
+                </div>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for form focus
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('label').style.color = '#f2ca50';
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('label').style.color = '';
+            });
+        });
+    </script>
+</body></html>

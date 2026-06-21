@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CLICALENDAR | Choose Your Service</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Playfair+Display:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "surface-container-lowest": "#0e0e0e",
+                    "tertiary-fixed": "#e5e2e1",
+                    "surface-container-highest": "#353534",
+                    "tertiary-container": "#b4b2b2",
+                    "surface-bright": "#3a3939",
+                    "secondary": "#dfc0b2",
+                    "on-error": "#690005",
+                    "on-secondary-fixed": "#28180f",
+                    "on-secondary-fixed-variant": "#574237",
+                    "primary-fixed-dim": "#e9c349",
+                    "outline": "#99907c",
+                    "inverse-surface": "#e5e2e1",
+                    "surface-container-low": "#1c1b1b",
+                    "surface-container": "#201f1f",
+                    "on-surface": "#e5e2e1",
+                    "surface-dim": "#131313",
+                    "surface-variant": "#353534",
+                    "secondary-fixed": "#fcdccd",
+                    "on-primary-fixed-variant": "#574500",
+                    "tertiary": "#d0cdcd",
+                    "background": "#131313",
+                    "outline-variant": "#4d4635",
+                    "surface-tint": "#e9c349",
+                    "on-secondary": "#3f2c22",
+                    "on-primary": "#3c2f00",
+                    "secondary-container": "#5a443a",
+                    "inverse-on-surface": "#313030",
+                    "error": "#ffb4ab",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "surface-container-high": "#2a2a2a",
+                    "primary": "#f2ca50",
+                    "primary-fixed": "#ffe088",
+                    "on-background": "#e5e2e1",
+                    "inverse-primary": "#735c00",
+                    "on-surface-variant": "#d0c5af",
+                    "on-secondary-container": "#d0b2a4",
+                    "error-container": "#93000a",
+                    "on-tertiary": "#303030",
+                    "secondary-fixed-dim": "#dfc0b2",
+                    "surface": "#131313",
+                    "on-tertiary-container": "#454545",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed": "#241a00",
+                    "on-primary-container": "#554300",
+                    "primary-container": "#d4af37",
+                    "on-tertiary-fixed": "#1b1b1c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "48px",
+                    "stack-sm": "12px",
+                    "stack-md": "24px",
+                    "container-padding-mobile": "20px",
+                    "gutter": "24px",
+                    "base": "8px",
+                    "container-padding-desktop": "40px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "display-lg": ["Playfair Display"],
+                    "display-lg-mobile": ["Playfair Display"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Playfair Display"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>.service-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(44, 27, 18, 0.4)
+    }
+.service-card:hover {
+    transform: translatey(-4px);
+    border-color: #f2ca50;
+    background-color: #201f1f
+    }
+.service-card.active {
+    border-color: #f2ca50;
+    background-color: #201f1f;
+    box-shadow: 0 0 20px rgba(242, 202, 80, 0.1)
+    }
+.service-card.active .radio-indicator {
+    background-color: #f2ca50;
+    border-color: #f2ca50
+    }
+.noise-overlay {
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuArgsEwjhrl0gMEjgQRx4zTlHfFQQPiLFTKQnRjZDl2400t8SwyZLp38CRy1Ns4a3BoBtCPojI0XyYuyOZGrAvS21DWlv_6erV1usSExz8vadAcNP4fmAkEKyXyTBjCZLkimMYgMyPBAhsbIxgayey3evFhYQsUvJU4lSr1KM_xrArNQXitNiic8dTY_sxsO3Vb-eCiA_rIJK_Kd1zvF3dxU-kgepgUXr11xuqXJJQpss2ItEp-uXwXwFR8Bz87zRPpJqhswrmOFl8)
+    }</style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- Global Header -->
+<header class="fixed top-0 w-full z-50 bg-surface/95 backdrop-blur-md border-b border-secondary-container/20 shadow-sm">
+<div class="flex justify-between items-center h-20 px-container-padding-desktop max-w-7xl mx-auto">
+<div class="font-display-lg text-display-lg uppercase tracking-tighter text-primary">
+                CLICALENDAR
+            </div>
+<nav class="hidden md:flex items-center space-x-8">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-md text-body-md" href="#">Services</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Barbers</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Gallery</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Locations</a>
+</nav>
+<button class="bg-primary text-on-primary px-6 py-2 font-bold hover:opacity-80 transition-all duration-300 active:scale-95">
+                Book Now
+            </button>
+</div>
+</header>
+<main class="flex-grow pt-32 pb-stack-lg px-container-padding-mobile md:px-container-padding-desktop max-w-7xl mx-auto w-full">
+<!-- Hero Section -->
+<div class="mb-stack-lg text-center md:text-left">
+<h1 class="font-display-lg text-display-lg md:text-display-lg text-primary mb-4">Choose Your Service</h1>
+<p class="text-on-surface-variant max-w-2xl font-body-lg text-body-lg">Select the precision treatment that defines your style. Our master barbers ensure every detail meets the CLICALENDAR standard.</p>
+</div>
+<!-- Service Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter relative">
+<div class="noise-overlay absolute inset-0 z-0"></div>
+<!-- Service Item 1 -->
+<div class="service-card group relative overflow-hidden bg-surface-container p-stack-md flex flex-col justify-between cursor-pointer rounded-lg z-10" onclick="selectService(this)">
+<div class="flex justify-between items-start mb-6">
+<div class="radio-indicator w-6 h-6 rounded-full border-2 border-outline transition-colors flex items-center justify-center">
+<div class="w-2.5 h-2.5 bg-on-primary rounded-full opacity-0 group-[.active]:opacity-100"></div>
+</div>
+<span class="text-primary font-bold text-headline-md font-headline-md">25€</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Corte de Pelo</h3>
+<p class="text-on-surface-variant font-body-md mb-6">Precisión y estilo adaptado a tu rostro.</p>
+</div>
+<div class="flex items-center text-label-sm font-label-sm text-outline uppercase tracking-widest">
+<span class="material-symbols-outlined mr-2" style="font-size: 18px;">schedule</span>
+                    30 min
+                </div>
+</div>
+<!-- Service Item 2 -->
+<div class="service-card group relative overflow-hidden bg-surface-container p-stack-md flex flex-col justify-between cursor-pointer rounded-lg z-10" onclick="selectService(this)">
+<div class="flex justify-between items-start mb-6">
+<div class="radio-indicator w-6 h-6 rounded-full border-2 border-outline transition-colors flex items-center justify-center">
+<div class="w-2.5 h-2.5 bg-on-primary rounded-full opacity-0 group-[.active]:opacity-100"></div>
+</div>
+<span class="text-primary font-bold text-headline-md font-headline-md">15€</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Arreglo de Barba</h3>
+<p class="text-on-surface-variant font-body-md mb-6">Perfilado y cuidado con productos premium.</p>
+</div>
+<div class="flex items-center text-label-sm font-label-sm text-outline uppercase tracking-widest">
+<span class="material-symbols-outlined mr-2" style="font-size: 18px;">schedule</span>
+                    20 min
+                </div>
+</div>
+<!-- Service Item 3 -->
+<div class="service-card group relative overflow-hidden bg-surface-container p-stack-md flex flex-col justify-between cursor-pointer rounded-lg z-10" onclick="selectService(this)">
+<div class="flex justify-between items-start mb-6">
+<div class="radio-indicator w-6 h-6 rounded-full border-2 border-outline transition-colors flex items-center justify-center">
+<div class="w-2.5 h-2.5 bg-on-primary rounded-full opacity-0 group-[.active]:opacity-100"></div>
+</div>
+<span class="text-primary font-bold text-headline-md font-headline-md">35€</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Combo: Corte + Barba</h3>
+<p class="text-on-surface-variant font-body-md mb-6">El paquete completo para el caballero.</p>
+</div>
+<div class="flex items-center text-label-sm font-label-sm text-outline uppercase tracking-widest">
+<span class="material-symbols-outlined mr-2" style="font-size: 18px;">schedule</span>
+                    50 min
+                </div>
+</div>
+<!-- Service Item 4 -->
+<div class="service-card group relative overflow-hidden bg-surface-container p-stack-md flex flex-col justify-between cursor-pointer rounded-lg z-10" onclick="selectService(this)">
+<div class="flex justify-between items-start mb-6">
+<div class="radio-indicator w-6 h-6 rounded-full border-2 border-outline transition-colors flex items-center justify-center">
+<div class="w-2.5 h-2.5 bg-on-primary rounded-full opacity-0 group-[.active]:opacity-100"></div>
+</div>
+<span class="text-primary font-bold text-headline-md font-headline-md">20€</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Afeitado Clásico</h3>
+<p class="text-on-surface-variant font-body-md mb-6">Toalla caliente y navaja tradicional.</p>
+</div>
+<div class="flex items-center text-label-sm font-label-sm text-outline uppercase tracking-widest">
+<span class="material-symbols-outlined mr-2" style="font-size: 18px;">schedule</span>
+                    30 min
+                </div>
+</div>
+</div>
+<!-- Sticky Footer Action -->
+<div class="mt-stack-lg flex flex-col md:flex-row items-center justify-between gap-stack-md border-t border-secondary-container/20 pt-stack-md">
+<div class="text-on-surface-variant font-body-md">
+                Selected: <span class="text-primary font-bold" id="selection-name">None</span>
+</div>
+<button class="w-full md:w-auto px-12 py-4 bg-surface-container-highest text-on-surface-variant font-bold rounded-lg transition-all duration-300 disabled:cursor-not-allowed opacity-50 uppercase tracking-widest" disabled="" id="next-btn">
+                Next Step
+            </button>
+</div>
+</main>
+<!-- Global Footer -->
+<footer class="w-full py-stack-lg bg-surface-container-lowest border-t border-secondary-container/10">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-container-padding-desktop max-w-7xl mx-auto">
+<div class="flex flex-col space-y-4">
+<div class="font-display-lg text-display-lg text-primary">CLICALENDAR</div>
+<p class="text-on-surface-variant font-body-md max-w-xs">Elevating the modern grooming experience through precision, style, and exclusive atmosphere.</p>
+</div>
+<div class="flex flex-col space-y-4">
+<h4 class="text-primary font-bold uppercase tracking-widest text-label-sm">Navigation</h4>
+<nav class="flex flex-col space-y-2">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Careers</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Contact</a>
+</nav>
+</div>
+<div class="flex flex-col justify-end text-on-surface-variant font-body-md">
+                © 2024 CLICALENDAR. PRECISION &amp; STYLE.
+            </div>
+</div>
+</footer>
+<script>
+        function selectService(element) {
+            // Clear existing selection
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Apply new selection
+            element.classList.add('active');
+            
+            // Update UI State
+            const serviceName = element.querySelector('h3').innerText;
+            document.getElementById('selection-name').innerText = serviceName;
+            
+            // Enable Button
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('bg-surface-container-highest', 'text-on-surface-variant', 'opacity-50');
+            nextBtn.classList.add('bg-primary', 'text-on-primary', 'shadow-lg');
+            
+            // Animation Trigger
+            nextBtn.animate([
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.02)' },
+                { transform: 'scale(1)' }
+            ], {
+                duration: 200,
+                easing: 'ease-out'
+            });
+        }
+    </script>
+</body></html>

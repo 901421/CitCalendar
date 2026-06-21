@@ -1,0 +1,74 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap");
+
+@theme {
+  --color-primary: #f2ca50;
+  --color-on-primary: #3c2f00;
+  --color-primary-container: #d4af37;
+  --color-on-primary-container: #554300;
+  --color-secondary: #dfc0b2;
+  --color-on-secondary: #3f2c22;
+  --color-secondary-container: #5a443a;
+  --color-on-secondary-container: #d0b2a4;
+  --color-background: #131313;
+  --color-on-background: #e5e2e1;
+  --color-surface: #131313;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #d0c5af;
+  --color-surface-container: #201f1f;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353534;
+  --color-outline: #99907c;
+  --color-outline-variant: #4d4635;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+
+  --font-display-lg: "Playfair Display", serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-label-sm: "Inter", sans-serif;
+  --font-headline-md: "Playfair Display", serif;
+}
+
+body {
+  background-color: #131313;
+  color: #e5e2e1;
+  font-family: "Inter", sans-serif;
+  background-attachment: fixed;
+}
+
+.grain-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.gold-glow {
+  box-shadow: 0 0 20px rgba(242, 202, 80, 0.15);
+}
+
+.inner-glow-hover:hover {
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.service-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(153, 144, 124, 0.2);
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  border-color: #f2ca50;
+  background-color: #201f1f;
+}
+
+.service-card.active {
+  border-color: #f2ca50;
+  background-color: #201f1f;
+  box-shadow: 0 0 20px rgba(242, 202, 80, 0.1);
+}

@@ -1,0 +1,199 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Business {
+  id                 String           @id @default(uuid())
+  name               String
+  slug               String           @unique
+  logoUrl            String?
+  address            String?
+  phone              String?
+  cancellationPolicy String?
+  depositPercent     Decimal          @default(0) @db.Decimal(5, 2)
+  stripeAccountId    String?
+  schedule           Json?            // e.g. {"monday": {"open": "09:00", "close": "20:00"}}
+  themeConfig        Json?            // Stitch design preferences
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  services           Service[]
+  professionals      Professional[]
+  clients            Client[]
+  appointments       Appointment[]
+  users              User[]
+  cajaDailyCloses    CajaDailyClose[]
+  waitlists          Waitlist[]
+}
+
+model User {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  password       String
+  name           String
+  role           String        // OWNER, EMPLOYEE
+  businessId     String
+  business       Business      @relation(fields: [businessId], references: [id])
+  professionalId String?       @unique
+  professional   Professional? @relation(fields: [professionalId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Service {
+  id              String                @id @default(uuid())
+  businessId      String
+  business        Business              @relation(fields: [businessId], references: [id])
+  name            String
+  description     String?
+  durationMinutes Int
+  price           Decimal               @db.Decimal(10, 2)
+  category        String?
+  status          String                @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  professionals   ProfessionalService[]
+  appointmentServices AppointmentService[]
+}
+
+model Professional {
+  id             String                 @id @default(uuid())
+  businessId     String
+  business       Business               @relation(fields: [businessId], references: [id])
+  name           String
+  photoUrl       String?
+  bio            String?
+  rating         Decimal                @default(5.0) @db.Decimal(3, 2)
+  commissionRate Decimal                @default(0) @db.Decimal(10, 2)
+  commissionType String                 @default("PERCENT") // PERCENT, FIXED
+  status         String                 @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  services       ProfessionalService[]
+  schedules      ProfessionalSchedule[]
+  blocks         ProfessionalBlock[]
+  appointments   Appointment[]
+  user           User?
+  commissions    Commission[]
+}
+
+model ProfessionalService {
+  professionalId String
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  serviceId      String
+  service        Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([professionalId, serviceId])
+}
+
+model ProfessionalSchedule {
+  id             String       @id @default(uuid())
+  professionalId String
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  dayOfWeek      Int          // 0 = Sunday, 1 = Monday, etc.
+  startTime      String       // "09:00"
+  endTime        String       // "14:00"
+  isActive       Boolean      @default(true)
+}
+
+model ProfessionalBlock {
+  id             String       @id @default(uuid())
+  professionalId String
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  startTime      DateTime
+  endTime        DateTime
+  reason         String?
+}
+
+model Client {
+  id         String        @id @default(uuid())
+  businessId String
+  business   Business      @relation(fields: [businessId], references: [id])
+  name       String
+  email      String?
+  phone      String
+  notes      String?
+  tags       String[]      // VIP, NUEVO, INACTIVO
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  appointments Appointment[]
+  waitlists  Waitlist[]
+}
+
+model Appointment {
+  id             String               @id @default(uuid())
+  businessId     String
+  business       Business             @relation(fields: [businessId], references: [id])
+  clientId       String
+  client         Client               @relation(fields: [clientId], references: [id])
+  professionalId String
+  professional   Professional         @relation(fields: [professionalId], references: [id])
+  status         String               // PENDING, CONFIRMED, COMPLETED, NO_SHOW, CANCELLED
+  startTime      DateTime
+  endTime        DateTime
+  notes          String?
+  totalPrice     Decimal              @db.Decimal(10, 2)
+  depositPaid    Decimal              @default(0.0) @db.Decimal(10, 2)
+  stripePaymentId String?
+  paymentMethod  String?              // CASH, CARD, BIZUM, STRIPE_ONLINE
+  emailReminderSent Boolean            @default(false)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  services       AppointmentService[]
+  commissions    Commission[]
+}
+
+model AppointmentService {
+  id            String      @id @default(uuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  serviceId     String
+  service       Service     @relation(fields: [serviceId], references: [id])
+  price         Decimal     @db.Decimal(10, 2)
+  durationMinutes Int
+}
+
+model Waitlist {
+  id             String       @id @default(uuid())
+  businessId     String
+  business       Business     @relation(fields: [businessId], references: [id])
+  clientId       String
+  client         Client       @relation(fields: [clientId], references: [id])
+  requestedDate  DateTime     @db.Date
+  preferredStart String       // "09:00"
+  preferredEnd   String       // "14:00"
+  professionalId String?
+  status         String       // WAITING, NOTIFIED, BOOKED, EXPIRED
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Commission {
+  id             String       @id @default(uuid())
+  professionalId String
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  appointmentId  String
+  appointment    Appointment  @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  amount         Decimal      @db.Decimal(10, 2)
+  rateType       String       // PERCENT, FIXED
+  rateValue      Decimal      @db.Decimal(10, 2)
+  calculatedAt   DateTime     @default(now())
+}
+
+model CajaDailyClose {
+  id             String       @id @default(uuid())
+  businessId     String
+  business       Business     @relation(fields: [businessId], references: [id])
+  closedByUserId String
+  closeDate      DateTime     @db.Date
+  openingCash    Decimal      @db.Decimal(10, 2)
+  totalCash      Decimal      @db.Decimal(10, 2)
+  totalCard      Decimal      @db.Decimal(10, 2)
+  totalBizum     Decimal      @db.Decimal(10, 2)
+  totalStripe    Decimal      @db.Decimal(10, 2)
+  notes          String?
+  createdAt      DateTime     @default(now())
+}
