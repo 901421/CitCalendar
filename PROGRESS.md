@@ -4,33 +4,37 @@ Este archivo documenta el progreso de la implementación del SaaS paso a paso.
 
 ---
 
-## Estado Actual: Fase 1 (MVP Vendible) Completada al 100% y Verificada
+## Estado Actual: Fase 2 (Diferencial Competitivo) Completada al 100% y Verificada
 
-Hemos finalizado y validado funcional y técnicamente el núcleo de la aplicación (Fase 1). El sistema se compone de una API NestJS robusta, un flujo de reserva web Next.js enfocado en velocidad/SEO, y un panel de administración en Flutter bajo patrón BLoC.
+Hemos finalizado y validado funcional y técnicamente el núcleo de la aplicación (Fase 1) y los diferenciales competitivos (Fase 2). El sistema se compone de una API NestJS robusta, un flujo de reserva web Next.js enfocado en velocidad/SEO con portal de autogestión de citas y lista de espera, y un panel de administración en Flutter bajo patrón BLoC con liquidación de comisiones, monitorización de lista de espera y gestión de caja.
 
-### Qué se ha construido en esta fase:
+### Qué se ha construido hasta ahora:
 
 1. **Backend API (`apps/api`)**:
-   - Modelo relacional en PostgreSQL vía Prisma ORM (Business, User, Service, Professional, Client, Appointment).
+   - Modelo relacional en PostgreSQL vía Prisma ORM (Business, User, Service, Professional, Client, Appointment, Commission, Waitlist, CajaDailyClose).
    - Core de cálculo de disponibilidad de huecos de 15 minutos en tiempo real sin solapamientos.
    - Transacción atómica en la creación de reservas con protección anti double-booking mediante **row-level locking (FOR UPDATE)** sobre el profesional.
    - Recordatorio automático de 24 horas vía planificador de tareas integrado (`@nestjs/schedule`).
    - Envío de confirmaciones inmediatas por email con Nodemailer formateado en la zona horaria del negocio (`Europe/Madrid`).
    - Controladores CRUD de administración protegidos con JWT y sanitización DTO de payloads (`class-validator`).
-   - Suite de pruebas unitarias Jest con 100% de éxito.
+   - **Módulo de comisiones**: liquidación automática al completar citas.
+   - **Módulo de lista de espera**: emparejamiento inteligente y notificación por email al cancelar un turno.
+   - **Portal de Clientes**: endpoints públicos para autogestión de citas con política estricta de 24h.
+   - Suite de pruebas unitarias Jest con 32 tests de éxito (100%).
 
 2. **Web Pública de Clientes (`apps/web`)**:
    - Página del negocio y wizard interactivo de reservas paso a paso (Servicio -> Profesional -> Fecha/Hora -> Datos de Contacto -> Confirmación).
-   - Arquitectura Next.js App Router dividida en un Componente de Servidor (RSC) para beneficio de SEO y carga rápida, y un Componente de Cliente (`BookingFlowClient.tsx`) para el estado del formulario.
-   - Estilizado de alta gama con variables Tailwind CSS v4 a juego con el diseño original de Stitch.
+   - **Portal de Autogestión**: Búsqueda por teléfono, reprogramación (con calendario interactivo y consulta de disponibilidad) y cancelación en tiempo real.
+   - **Lista de Espera**: Formulario de registro de lista de espera si no hay huecos en el día.
+   - Arquitectura Next.js App Router con Server Components (RSC) para SEO y Client Components para interactividad, compilando exitosamente a producción.
 
 3. **App Android de Administración (`apps/admin-app`)**:
    - Login real conectado a la API de autenticación con persistencia de token JWT.
-   - Vista de agenda diaria con métricas de reservas del día en tiempo real (hechas, pendientes, no-show).
-   - Ficha del cliente (CRM) con historial dinámico de reservas previas consultado al API.
-   - **Flujo de Creación Manual**: Selector de servicio, estilista, fecha y huecos libres en tiempo real conectados a la API de disponibilidad.
-   - **Flujo de Reprogramación**: Selector de fecha y hora libre con guardado inmediato en base de datos (`PATCH /appointments/:id`).
-   - Gestión de Caja y pantalla de Estadísticas conectadas a los datos reales cargados.
+   - Vista de agenda diaria con métricas de reservas del día en tiempo real.
+   - Ficha del cliente (CRM) con historial dinámico de reservas previas.
+   - Creación manual y reprogramación de citas integrada con la API.
+   - **Módulo de Comisiones**: Pantalla de liquidación acumulada y desglose por profesional.
+   - **Módulo de Lista de Espera**: Pantalla de monitoreo y eliminación de solicitudes activas.
    - Manejo de estado robusto con `flutter_bloc` (Cubits).
 
 ---
