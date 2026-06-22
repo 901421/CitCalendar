@@ -27,6 +27,8 @@ model Business {
   users              User[]
   cajaDailyCloses    CajaDailyClose[]
   waitlists          Waitlist[]
+  locations          Location[]
+  products           Product[]
 }
 
 model User {
